@@ -1,42 +1,40 @@
 <template>
-  <div>
-    {{ guides }}
-  </div>
+  <nuxt-content :document="guide" />
 </template>
 
 <script>
 export default {
   name: 'dynamic-guides',
   async asyncData({ $content, params }) {
-    const guides = await $content('guides', params.slug).fetch()
-    return { guides }
+    const guide = await $content('guides', params.slug).fetch()
+    return { guide }
   },
   head() {
     return {
-      title: this.guides.title,
+      title: this.guide.title,
       meta: [
         {
           hid: 'description',
           name: 'description',
-          content: this.guides.description,
+          content: this.guide.description,
         },
         // Open Graph
-        { hid: 'og:title', property: 'og:title', content: this.guides.title },
+        { hid: 'og:title', property: 'og:title', content: this.guide.title },
         {
           hid: 'og:description',
           property: 'og:description',
-          content: this.guides.description,
+          content: this.guide.description,
         },
         // Twitter Card
         {
           hid: 'twitter:title',
           name: 'twitter:title',
-          content: this.guides.title,
+          content: this.guide.title,
         },
         {
           hid: 'twitter:description',
           name: 'twitter:description',
-          content: this.guides.description,
+          content: this.guide.description,
         },
       ],
     }

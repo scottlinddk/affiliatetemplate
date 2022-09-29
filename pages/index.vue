@@ -3,7 +3,7 @@
     <div>
       <ul>
         <ProdView
-          v-for="(produkt, index) in feed.produkter.produkt"
+          v-for="(produkt, index) in produkter.produkter.produkt"
           :key="index"
           :produkt="produkt"
         />
@@ -17,12 +17,11 @@ export default {
   layout: 'default',
   data() {
     return {
-      feed: [],
-      feedURL: 'https://partneradsproductfeed.herokuapp.com/api/feed/7335',
+     produkter: []
     }
   },
   async fetch() {
-    this.feed = await fetch(this.feedURL).then((res) => res.json())
+    this.produkter = await fetch("https://partneradsproductfeed.herokuapp.com/api/feed/7435").then((res) => res.json())
   },
   mounted() {},
 }
