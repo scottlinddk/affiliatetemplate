@@ -1,69 +1,94 @@
-# affiliatetemplate
+# Affiliate website template
 
-## Build Setup
+A Danish affiliate website built with **React, Next.js App Router and TypeScript**. This version replaces the original Vue/Nuxt application. It runs without a database and starts with a clearly labelled, fictional demo catalog.
 
-```bash
-# install dependencies
-$ npm install
+The included brand, **Velvalgt**, is a starting point: replace the identity, editorial content and demo data with your own before launching.
 
-# serve with hot reload at localhost:3000
-$ npm run dev
+## Start in a few minutes
 
-# build for production and launch server
-$ npm run build
-$ npm run start
+Requirements: Node.js 22 or newer and npm. To create your own repository with GitHub CLI:
 
-# generate static project
-$ npm run generate
+```sh
+gh repo create my-affiliate-site --template scottlinddk/affiliatetemplate --private --clone
+cd my-affiliate-site
+npm ci
+npm run dev
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+Open [localhost:3000](http://localhost:3000). No API key, database, Partner-ads account or environment file is needed for the demo.
 
-## Special Directories
+For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` when you are ready to configure a live site. Never commit private feed URLs or credentials.
 
-You can create the following extra directories, some of which have special behaviors. Only `pages` is required; you can delete them if you don't want to use their functionality.
+## What is included
 
-### `assets`
+- Responsive Danish storefront, product details and category navigation.
+- Search, category/brand/price filters and sorting, with shareable catalog URLs.
+- Multiple offers per product, known delivery charges, stock indicators and freshness checks.
+- Up to four products in a comparison and browser-local favorites.
+- Partner-ads XML feed import on the server, matching validated product identifiers across merchants and rejection of invalid data.
+- Affiliate links that respect the visitor's saved choice; direct merchant links without affiliate consent.
+- Optional approved banner placements, loaded only after the visitor allows affiliate tracking.
+- A manually maintained offers/coupon page with validity dates and clear conditions.
+- Markdown buying guides, article metadata, sitemap and robots output.
+- Visible advertising disclosure, an about page, an editable privacy page and persistent privacy settings.
+- Local demo illustrations, accessible labels, empty/error states and automated checks.
 
-The assets directory contains your uncompiled assets such as Stylus or Sass files, images, or fonts.
+This is a storefront and publishing template. It does not include a checkout, order management, login, newsletter service, analytics dashboard or a Partner-ads account. Those are separate services. The template makes no claim of automatic legal compliance or verified demo offers.
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/assets).
+## Configure your site
 
-### `components`
+| Setting                      | Purpose                                                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`       | Your public HTTPS origin; used for canonical URLs and search metadata.                                |
+| `NEXT_PUBLIC_PUBLISHER_NAME` | The actual person or business publishing the website.                                                 |
+| `NEXT_PUBLIC_CONTACT_EMAIL`  | A real contact address shown on information pages.                                                    |
+| `PARTNER_ADS_PARTNER_ID`     | Your affiliate ID; required when constructing tracking links from direct product URLs.                |
+| `PARTNER_ADS_FEEDS`          | Server-only JSON configuration for individually approved advertiser feeds. Leave unset for demo mode. |
 
-The components directory contains your Vue.js components. Components make up the different parts of your page and can be reused and imported into your pages, layouts and even other components.
+Edit the brand name, description, language and other site defaults in `src/config/site.ts`. Details and an example feed configuration are in [Partner-ads setup](docs/partner-ads.md).
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/components).
+The template does not infer advertiser approval. You need an approved affiliate account, an approved website and approval for each program you use. `approved: true` records your confirmation; it does not make an approval request.
 
-### `layouts`
+## Commands
 
-Layouts are a great help when you want to change the look and feel of your Nuxt app, whether you want to include a sidebar or have distinct layouts for mobile and desktop.
+| Command                | Result                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm ci`               | Install exactly the locked dependencies.                                                               |
+| `npm run dev`          | Start local development.                                                                               |
+| `npm run build`        | Create a production Next.js build.                                                                     |
+| `npm start`            | Serve that production build.                                                                           |
+| `npm run generate`     | Export a static website to `out/`.                                                                     |
+| `npm run check`        | Run lint, TypeScript checks and unit tests.                                                            |
+| `npm run check:config` | Check production launch settings and feed configuration; intentionally fails for an unconfigured demo. |
+| `npm run test:e2e`     | Run browser tests; install Playwright Chromium first.                                                  |
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/layouts).
+Install the browser needed for end-to-end tests with `npx playwright install chromium`.
 
+## Content and data
 
-### `pages`
+- `src/data/products.json`: illustrative demo products. Demo merchant links are disabled.
+- `src/data/deals.json`: editorial offers, codes, validity dates and terms. Keep example offers labelled as demo.
+- `src/data/banners.json`: optional approved advertiser creative; empty by default.
+- `content/guides/*.md`: buying guides with frontmatter; no CMS required.
+- `src/app/om/page.tsx` and `src/app/privatliv/page.tsx`: public information pages to adapt to your business and hosting.
+- `public/images/`: bundled illustrations; live product images remain on the advertiser's host.
 
-This directory contains your application views and routes. Nuxt will read all the `*.vue` files inside this directory and setup Vue Router automatically.
+See [editing content](docs/content.md) for guide and offer examples. The included guides are original general buying advice, not product tests or independent reviews.
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/get-started/routing).
+## Deployment and keeping prices current
 
-### `plugins`
+For a Node-compatible host, run `npm ci`, `npm run check`, `npm run check:config` and `npm run build`, then serve with `npm start`. Set the same environment values in your host. Set public environment variables **before the build**, because Next.js embeds them in the frontend.
 
-The plugins directory contains JavaScript plugins that you want to run before instantiating the root Vue.js Application. This is the place to add Vue plugins and to inject functions or constants. Every time you need to use `Vue.use()`, you should create a file in `plugins/` and add its path to plugins in `nuxt.config.js`.
+The server caches a successfully processed feed result and its fetch timestamp for one hour. Revalidation is request-driven; it is not a background scheduler or a promise that a supplier updates its source every hour. New product routes and changed guide content should be picked up with a fresh deployment.
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/plugins).
+For static hosting, run `npm run generate` and publish **`out/`**, with directory-index support. There is no server-side revalidation in an exported site. Schedule a fresh build and deploy at least daily, check its success, and rebuild immediately after content or feed changes. A normal server build is the better fit for a catalog that changes often.
 
-### `static`
+Partner-ads' feed guide calls for prices to be refreshed at least weekly. The template excludes offers older than seven days from current price selection. Static HTML, search-engine caches and an already-open browser tab can still lag behind: a regular successful rebuild remains necessary. The merchant always confirms the final price, stock and delivery charge.
 
-This directory contains your static files. Each file inside this directory is mapped to `/`.
+Read the [launch checklist](docs/launch-checklist.md) before making the site public.
 
-Example: `/static/robots.txt` is mapped as `/robots.txt`.
+## Implementation notes
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/static).
+The migration removes Nuxt, Vuex and Vue components in favor of React server-rendered pages and small client components for search, preferences and comparison. Feed credentials remain on the server. Markdown is rendered through `react-markdown` with raw HTML disabled and a restricted element list. Product data is validated before display; feed failures are surfaced instead of silently substituting demo products into a live catalog.
 
-### `store`
-
-This directory contains your Vuex store files. Creating a file in this directory automatically activates Vuex.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/store).
+The implementation is informed by the [Partner-ads overview](https://www.partner-ads.com/dk/guide-affiliate-annoncoer.php), [product-feed guide](https://www.partner-ads.com/dk/guide-til-affiliate-hele-produktfeeds.php), [XML specification](https://www.partner-ads.com/dk/feed_advinfo.htm) and [affiliate terms](https://www.partner-ads.com/dk/affiliatebetingelser.php). [Partner-ads setup](docs/partner-ads.md) documents the supported scope and links to the relevant primary sources.

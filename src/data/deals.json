@@ -1,0 +1,25 @@
+[
+  {
+    "id": "demo-home",
+    "title": "10 % på udvalgte boligfavoritter",
+    "merchant": "Nordbo · demobutik",
+    "description": "Et eksempel på en rabatkode fra en godkendt forhandler.",
+    "code": "EKSEMPEL10",
+    "startsAt": "2026-01-01T00:00:00+01:00",
+    "expiresAt": "2026-12-31T23:59:59+01:00",
+    "url": "https://example.com",
+    "terms": "Demo: Koden er fiktiv og kan ikke indløses. Erstat med en aftalt kampagne før lancering.",
+    "demo": true
+  },
+  {
+    "id": "demo-coffee",
+    "title": "Fri fragt på dit kaffeudstyr",
+    "merchant": "Kaffehjørnet · demobutik",
+    "description": "Et eksempel på et tilbud uden rabatkode.",
+    "startsAt": "2026-01-01T00:00:00+01:00",
+    "expiresAt": "2026-12-31T23:59:59+01:00",
+    "url": "https://example.com",
+    "terms": "Demo: Tilbuddet er fiktivt. Vis altid minimumskøb, undtagelser og slutdato for rigtige tilbud.",
+    "demo": true
+  }
+]
