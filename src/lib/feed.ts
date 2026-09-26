@@ -1,4 +1,3 @@
-import { XMLParser, XMLValidator } from 'fast-xml-parser'
 import { buildAffiliateUrl, isSafeHttpUrl } from './affiliate'
 import type { Product, Offer } from './types'
 
@@ -7,10 +6,13 @@ export const MAX_FEED_ROWS = 5_000
 export const MAX_FEEDS = 8
 
 export type FeedConfig = {
-  url: string
+  /** Partner-ads feed extract ID, separate from the advertiser program ID. */
+  rid: string
   programId: string
   merchant: string
   approved: true
+  /** The JSON API does not expose currency; explicitly confirm a DKK extract. */
+  currency: 'DKK'
   /** Banner ID is a separate identifier from the advertiser program ID. */
   bannerId?: string
 }
@@ -18,6 +20,12 @@ export type FeedConfig = {
 export type FeedParseOptions = {
   updatedAt: string
   partnerId?: string
+}
+
+export type FeedResult = {
+  products: Product[]
+  rejectedRows: number
+  totalRows: number
 }
 
 export class FeedError extends Error {}
@@ -49,22 +57,15 @@ function isPositiveId(value: unknown): value is string {
   return typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value)
 }
 
-/** Feed URLs are administrator-supplied, but avoid accidentally fetching local services. */
-function validFeedUrl(value: unknown): value is string {
+/** This administrator-controlled service may run on localhost or a private network. */
+export function parseFeedApiUrl(value: string): string {
   const normalized = safeHttpUrl(value)
-  if (!normalized) return false
+  if (!normalized)
+    throw new FeedError('Angiv PARTNER_ADS_API_URL til JSON-feedets API.')
   const url = new URL(normalized)
-  const host = url.hostname.toLowerCase()
-  return (
-    url.protocol === 'https:' &&
-    !url.hash &&
-    host.includes('.') &&
-    !host.endsWith('.localhost') &&
-    !host.endsWith('.local') &&
-    !host.endsWith('.internal') &&
-    !/^\d+\.\d+\.\d+\.\d+$/.test(host) &&
-    !host.includes(':')
-  )
+  if (url.search || url.hash || /[?#]/.test(value))
+    throw new FeedError('API-adressen må ikke indeholde query eller fragment.')
+  return url.href.replace(/\/+$/, '')
 }
 
 export function parseFeedConfig(raw: string): FeedConfig[] {
@@ -83,56 +84,46 @@ export function parseFeedConfig(raw: string): FeedConfig[] {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry))
       throw new FeedError('Et feed mangler gyldige indstillinger.')
     const row = entry as Record<string, unknown>
+    if ('url' in row)
+      throw new FeedError(
+        'Erstat feedets url med rid og angiv PARTNER_ADS_API_URL til partner-ads-json-feed.',
+      )
     if (
       row.approved !== true ||
-      !validFeedUrl(row.url) ||
+      typeof row.rid !== 'string' ||
+      !/^\d{1,100}$/.test(row.rid) ||
       !isPositiveId(row.programId) ||
+      row.currency !== 'DKK' ||
       typeof row.merchant !== 'string' ||
       !plainText(row.merchant, 100) ||
       row.merchant.length > 100 ||
       (row.bannerId !== undefined && !isPositiveId(row.bannerId))
     ) {
       throw new FeedError(
-        'Et feed mangler en HTTPS-adresse, program-id, forhandler eller bekræftet godkendelse.',
+        'Et feed mangler rid, program-id, forhandler, DKK-valuta eller bekræftet godkendelse.',
       )
     }
     return {
-      url: row.url.trim(),
+      rid: row.rid,
       programId: row.programId,
       merchant: plainText(row.merchant, 100),
       approved: true as const,
+      currency: 'DKK' as const,
       ...(row.bannerId ? { bannerId: row.bannerId } : {}),
     }
   })
-  if (new Set(feeds.map((feed) => feed.url)).size !== feeds.length)
+  if (new Set(feeds.map((feed) => feed.rid)).size !== feeds.length)
     throw new FeedError('Det samme feed er angivet flere gange.')
   return feeds
 }
 
-/** Supports Danish comma decimals and explicitly grouped thousands without guessing malformed values. */
-export function parseDanishPrice(value: unknown): number | undefined {
-  if (typeof value === 'number')
-    return Number.isFinite(value) && value >= 0 && value <= 100_000_000
-      ? value
-      : undefined
-  if (typeof value !== 'string') return undefined
-  let input = value
-    .trim()
-    .replace(/^(?:DKK|kr\.?)\s*/i, '')
-    .replace(/\s*(?:DKK|kr\.?)$/i, '')
-    .trim()
-  input = input.replace(/[\u00a0\u202f]/g, ' ')
-  if (/^\d{1,3}(?: \d{3})+(?:[,.]\d{1,2})?$/.test(input))
-    input = input.replace(/ /g, '').replace(',', '.')
-  else if (/^\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?$/.test(input))
-    input = input.replace(/\./g, '').replace(',', '.')
-  else if (/^\d{1,3}(?:,\d{3})+\.\d{1,2}$/.test(input))
-    input = input.replace(/,/g, '')
-  else if (/^\d+(?:[,.]\d{1,2})?$/.test(input)) input = input.replace(',', '.')
-  else return undefined
-  const price = Number(input)
-  return Number.isFinite(price) && price >= 0 && price <= 100_000_000
-    ? price
+/** Normalization belongs to the API; never coerce null or text into a price. */
+function jsonPrice(value: unknown): number | undefined {
+  return typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 100_000_000
+    ? value
     : undefined
 }
 
@@ -183,48 +174,6 @@ function canonicalGtin(value: string): string | undefined {
   )
   if ((10 - (sum % 10)) % 10 !== Number(code.at(-1))) return undefined
   return code.padStart(14, '0')
-}
-
-function parseStock(value: string): boolean | undefined {
-  const stock = value
-    .toLowerCase()
-    .trim()
-    .replace(/[_-]/g, ' ')
-    .replace(/\s+/g, ' ')
-  if (/^\d+$/.test(stock)) return Number(stock) > 0
-  if (
-    [
-      'true',
-      'yes',
-      'ja',
-      'available',
-      'in stock',
-      'instock',
-      'på lager',
-      'paa lager',
-      'lager',
-    ].includes(stock)
-  )
-    return true
-  if (
-    [
-      'false',
-      'no',
-      'nej',
-      'unavailable',
-      'not available',
-      'out of stock',
-      'outofstock',
-      'ikke på lager',
-      'ikke paa lager',
-      'udsolgt',
-      'backorder',
-      'preorder',
-      'forudbestilling',
-    ].includes(stock)
-  )
-    return false
-  return undefined
 }
 
 function partnerAdsHost(host: string): boolean {
@@ -294,12 +243,10 @@ export function resolveProductLinks(
   return { url: normalized, ...(affiliateUrl ? { affiliateUrl } : {}) }
 }
 
-function normalizeRow(value: unknown): Record<string, unknown> | undefined {
+function jsonObject(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     return undefined
-  return Object.fromEntries(
-    Object.entries(value).map(([key, entry]) => [key.toLowerCase(), entry]),
-  )
+  return value as Record<string, unknown>
 }
 
 function parseProduct(
@@ -307,71 +254,49 @@ function parseProduct(
   config: FeedConfig,
   options: FeedParseOptions,
 ): Product | undefined {
-  const row = normalizeRow(value)
+  const row = jsonObject(value)
   if (!row) return undefined
-  const get = (...keys: string[]): string => {
-    for (const key of keys) {
-      const value = row[key]
-      if (
-        (typeof value === 'string' && value.trim()) ||
-        typeof value === 'number'
-      )
-        return String(value).trim()
-    }
-    return ''
-  }
-  const name = plainText(
-    get('produktnavn', 'productname', 'name', 'title'),
-    180,
-  )
-  const price = parseDanishPrice(get('pris', 'nypris', 'price'))
-  const currency = get('valuta', 'currency').toUpperCase() || 'DKK'
-  const inStock = parseStock(
-    get('lagerstatus', 'instock', 'stock', 'availability'),
-  )
-  const image = safeHttpUrl(get('billedurl', 'imageurl', 'image', 'imagelink'))
-  const links = resolveProductLinks(
-    get('vareurl', 'produktlink', 'producturl', 'url', 'link'),
-    config,
-    options.partnerId,
-  )
+  const name = plainText(row.name, 180)
+  const price = jsonPrice(row.price)
+  const inStock = row.inStock
+  const image = safeHttpUrl(row.imageUrl)
+  const links = resolveProductLinks(row.productUrl, config, options.partnerId)
   if (
     !name ||
     price === undefined ||
     price <= 0 ||
-    currency !== 'DKK' ||
-    inStock === undefined ||
+    (row.currency !== undefined && row.currency !== config.currency) ||
+    typeof inStock !== 'boolean' ||
     !image ||
     !links
   )
     return undefined
-  const shippingValue = get('fragtomk', 'fragt', 'shipping', 'shippingcost')
-  const shipping = /^(?:gratis|fri fragt|free)$/i.test(shippingValue)
-    ? 0
-    : parseDanishPrice(shippingValue)
-  if (shippingValue && shipping === undefined) return undefined
-  const sourceId = get('produktid', 'productid', 'sku', 'id')
-  const gtin = canonicalGtin(get('ean', 'gtin', 'upc'))
+  const shipping = jsonPrice(row.shippingCost)
+  if (row.shippingCost != null && shipping === undefined) return undefined
+  // Keep source IDs as strings, including leading zeroes. Empty IDs use the URL.
+  if (typeof row.id !== 'string' || typeof row.ean !== 'string')
+    return undefined
+  const sourceId = row.id.trim()
+  const gtin = canonicalGtin(row.ean)
   const id = gtin
     ? `gtin-${gtin}`
     : `product-${stableHash(`${config.programId}:${sourceId || links.url}`)}`
   const specs: Record<string, string> = {}
   if (gtin) specs.EAN = gtin.replace(/^0(?=\d{13}$)/, '')
-  for (const [label, keys] of [
-    ['Farve', ['color', 'farve']],
-    ['Størrelse', ['size', 'stoerrelse', 'størrelse']],
-    ['Materiale', ['material', 'materiale']],
-    ['Vægt', ['weight', 'vaegt', 'vægt']],
+  for (const [label, key] of [
+    ['Farve', 'color'],
+    ['Størrelse', 'size'],
+    ['Køn', 'gender'],
   ] as const) {
-    const text = plainText(get(...keys), 100)
+    const text = plainText(row[key], 100)
     if (text) specs[label] = text
   }
-  const delivery = plainText(get('leveringstid', 'deliverytime'), 100)
+  const delivery = plainText(row.deliveryTime, 100)
   const offer: Offer = {
     id: `offer-${stableHash(`${config.programId}:${sourceId || links.url}`)}`,
     merchant: config.merchant,
     price,
-    currency,
+    currency: config.currency,
     ...(shipping !== undefined ? { shipping } : {}),
     inStock,
     ...links,
@@ -382,14 +307,9 @@ function parseProduct(
     id,
     slug: `${slugify(name)}-${gtin || stableHash(id)}`,
     name,
-    brand:
-      plainText(get('brand', 'maerke', 'mærke', 'manufacturer'), 100) ||
-      'Ukendt mærke',
-    category:
-      plainText(get('kategorinavn', 'category', 'kategori'), 100) || 'Øvrigt',
-    description:
-      plainText(get('produktbeskrivelse', 'beskrivelse', 'description')) ||
-      name,
+    brand: plainText(row.brand, 100) || 'Ukendt mærke',
+    category: plainText(row.category, 100) || 'Øvrigt',
+    description: plainText(row.description) || name,
     image,
     imageAlt: name,
     features: [],
@@ -400,50 +320,14 @@ function parseProduct(
 }
 
 export function parsePartnerAdsFeed(
-  xml: string,
+  rows: unknown[],
   config: FeedConfig,
   options: FeedParseOptions,
-): { products: Product[]; rejectedRows: number; totalRows: number } {
+): FeedResult {
   if (!Number.isFinite(Date.parse(options.updatedAt)))
     throw new FeedError('Feedets opdateringstidspunkt er ugyldigt.')
-  if (new TextEncoder().encode(xml).length > MAX_FEED_BYTES)
-    throw new FeedError('Feedet overskrider størrelsesgrænsen.')
-  if (/<!DOCTYPE|<!ENTITY/i.test(xml))
-    throw new FeedError(
-      'Feedet indeholder ikke-understøttede XML-definitioner.',
-    )
-  // Apply the row bound before allocating parsed objects. Skip comments and
-  // CDATA so descriptions containing example XML do not count as real rows.
-  const tokens = /<!\[CDATA\[[\s\S]*?\]\]>|<!--[\s\S]*?-->|<produkt(?=[\s/>])/g
-  let rowCount = 0
-  for (const token of xml.matchAll(tokens)) {
-    if (token[0].startsWith('<produkt') && ++rowCount > MAX_FEED_ROWS)
-      throw new FeedError('Feedet indeholder for mange produkter.')
-  }
-  if (XMLValidator.validate(xml) !== true)
-    throw new FeedError('Feedet er ikke gyldigt XML.')
-  const parser = new XMLParser({
-    ignoreAttributes: true,
-    parseTagValue: false,
-    trimValues: true,
-    processEntities: true,
-  })
-  let parsed: Record<string, unknown>
-  try {
-    parsed = parser.parse(xml) as Record<string, unknown>
-  } catch {
-    throw new FeedError('Feedet kunne ikke læses.')
-  }
-  const container = normalizeRow(parsed.produkter)
-  if (!container)
-    throw new FeedError('Feedet skal indeholde produkter/produkt.')
-  const items = container.produkt
-  const rows: unknown[] =
-    items === undefined || items === ''
-      ? []
-      : Array.isArray(items)
-        ? items
-        : [items]
+  if (!Array.isArray(rows))
+    throw new FeedError('JSON-feedet skal indeholde en produktliste.')
   if (rows.length > MAX_FEED_ROWS)
     throw new FeedError('Feedet indeholder for mange produkter.')
   const products: Product[] = []

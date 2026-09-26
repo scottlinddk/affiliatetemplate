@@ -90,6 +90,8 @@ The placement displays a “Reklame” label and does not load its remote creati
 
 `src/data/products.json` provides a working UI before you have approved feeds. The demo's names, merchants, prices and specifications are fictional examples, and its purchase links are disabled. It should not be presented as a real comparison service.
 
-To switch to imported live data, configure `PARTNER_ADS_FEEDS`; there is no need to copy private feed responses into source control. Invalid live configuration remains in live mode and displays an error rather than substituting demo products. See [Partner-ads setup](partner-ads.md).
+To switch to imported live data, run a separate [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed) service, set its server-only `PARTNER_ADS_API_URL`, and configure `PARTNER_ADS_FEEDS` with approved advertiser-specific extract IDs (`rid`) and `currency: "DKK"`. There is no need to copy private feed responses into source control. The service must be reachable while building and serving the storefront. Rebuild after feed configuration or product-route changes.
+
+Invalid live configuration remains in live mode and displays an error rather than substituting demo products. Missing shipping remains unknown; products with unknown availability or invalid prices are omitted. Offer update times preserve the service's `meta.cachedAt` instead of the storefront's fetch time. See [Partner-ads setup](partner-ads.md) for the complete mapping and migration from legacy XML feed URLs.
 
 The product and deal TypeScript definitions are in `src/lib/types.ts`. If you extend them, update validation, the relevant interface, tests and these docs together.

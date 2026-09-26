@@ -138,9 +138,9 @@ test('saved products persist and can be removed through the saved filter', async
     .check()
   await expect(productCards(page)).toHaveCount(1)
   await page.reload()
-  await page
-    .getByRole('checkbox', { name: 'Mine gemte produkter', exact: true })
-    .check()
+  await expect(
+    page.getByRole('checkbox', { name: 'Mine gemte produkter', exact: true }),
+  ).toBeChecked()
   await expect(productCards(page)).toHaveCount(1)
   await expect(
     productCards(page).getByRole('heading', { name, exact: true }),

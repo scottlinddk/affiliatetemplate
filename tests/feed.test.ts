@@ -2,10 +2,9 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import demoProducts from '../src/data/products.json'
 import {
-  MAX_FEED_BYTES,
   MAX_FEED_ROWS,
   mergeCatalogProducts,
-  parseDanishPrice,
+  parseFeedApiUrl,
   parseFeedConfig,
   parsePartnerAdsFeed,
   resolveProductLinks,
@@ -14,81 +13,53 @@ import {
 } from '../src/lib/feed'
 
 const config: FeedConfig = {
-  url: 'https://www.partner-ads.com/dk/feedudtraek.php?secret=private',
+  rid: '001234',
   programId: '123',
   merchant: 'Testforhandler',
   approved: true,
+  currency: 'DKK',
 }
 const options = { updatedAt: '2026-09-26T10:00:00.000Z', partnerId: '456' }
 
-function xml(fields: Record<string, string> = {}): string {
-  const row = {
-    produktid: 'p-1',
-    produktnavn: 'Kaffemaskine Ærø',
-    brand: 'Test',
-    kategorinavn: 'Kaffe',
-    produktbeskrivelse: 'En kaffemaskine til hverdagen.',
-    pris: '1.299,95',
-    billedurl: 'https://merchant.example/coffee.jpg',
-    vareurl: 'https://merchant.example/coffee?a=1&b=2',
-    lagerstatus: 'på lager',
-    fragtomk: '39,00',
-    ...fields,
-  }
-  return `<produkter><produkt>${Object.entries(row)
-    .map(([key, value]) => `<${key}><![CDATA[${value}]]></${key}>`)
-    .join('')}</produkt></produkter>`
+function rows(fields: Record<string, unknown> = {}): unknown[] {
+  return [
+    {
+      id: '000123',
+      retailer: 'Upstream retailer',
+      name: 'Kaffemaskine Ærø',
+      brand: 'Test',
+      category: 'Kaffe',
+      description: 'En kaffemaskine til hverdagen.',
+      price: 1299.95,
+      originalPrice: 1499,
+      imageUrl: 'https://merchant.example/coffee.jpg',
+      productUrl: 'https://merchant.example/coffee?a=1&b=2',
+      stock: 'på lager',
+      inStock: true,
+      shippingCost: 39,
+      ean: '',
+      ...fields,
+    },
+  ]
 }
 
-test('Danish prices preserve cents, grouped thousands, and zero shipping', () => {
-  for (const [value, expected] of [
-    ['1.299,95', 1299.95],
-    ['1.299', 1299],
-    ['1299.95', 1299.95],
-    ['1,299.95', 1299.95],
-    ['1 299,95 kr.', 1299.95],
-    ['DKK 1\u00a0299,95', 1299.95],
-    ['0,00', 0],
-    ['12', 12],
-  ] as const)
-    assert.equal(parseDanishPrice(value), expected, value)
-  for (const value of [
-    '-1',
-    '1,2,3',
-    '1.299,999',
-    '1 2',
-    '1,299',
-    'free',
-    'NaN',
-    'Infinity',
-    '1e3',
-    '',
-    '1.2.3',
-    '99999999999',
-  ]) {
-    assert.equal(parseDanishPrice(value), undefined, value)
-  }
-  assert.equal(parseDanishPrice(Number.NaN), undefined)
-  assert.equal(parseDanishPrice(-1), undefined)
-})
-
-test('feed config requires explicit advertiser approval and public HTTPS URLs', () => {
+test('feed config requires extract IDs, DKK and explicit advertiser approval', () => {
   assert.deepEqual(parseFeedConfig(JSON.stringify([config])), [config])
   const withBanner = { ...config, bannerId: '999' }
   assert.deepEqual(parseFeedConfig(JSON.stringify([withBanner])), [withBanner])
   for (const changes of [
     { approved: false },
     { approved: undefined },
+    { rid: 1234 },
+    { rid: '' },
+    { rid: '../1234' },
+    { rid: '1?secret=private' },
+    { rid: '1'.repeat(101) },
     { programId: 123 },
     { programId: '0' },
+    { currency: undefined },
+    { currency: 'EUR' },
     { bannerId: 'program-123' },
-    { url: 'javascript:alert(1)' },
-    { url: 'http://merchant.example/feed' },
-    { url: 'https://localhost/feed' },
-    { url: 'https://127.0.0.1/feed' },
-    { url: 'https://169.254.169.254/feed' },
-    { url: 'https://[::1]/feed' },
-    { url: 'https://user:password@merchant.example/feed' },
     { merchant: '' },
     { merchant: '<b></b>' },
   ])
@@ -105,6 +76,51 @@ test('feed config requires explicit advertiser approval and public HTTPS URLs', 
     () => parseFeedConfig(JSON.stringify([config, config])),
     /flere gange/,
   )
+  assert.throws(
+    () =>
+      parseFeedConfig(
+        JSON.stringify(
+          Array.from({ length: 9 }, (_, i) => ({ ...config, rid: String(i) })),
+        ),
+      ),
+    /mellem 1 og 8/,
+  )
+  assert.throws(
+    () =>
+      parseFeedConfig(
+        JSON.stringify([{ ...config, url: 'https://example.com/private' }]),
+      ),
+    /rid.*PARTNER_ADS_API_URL/,
+  )
+})
+
+test('service base supports localhost and path prefixes without credentials or query strings', () => {
+  assert.equal(
+    parseFeedApiUrl('http://localhost:1337/'),
+    'http://localhost:1337',
+  )
+  assert.equal(
+    parseFeedApiUrl('http://feed-service:1337'),
+    'http://feed-service:1337',
+  )
+  assert.equal(
+    parseFeedApiUrl('https://feeds.example.com/proxy/'),
+    'https://feeds.example.com/proxy',
+  )
+  for (const value of [
+    '',
+    '/relative',
+    'javascript:alert(1)',
+    'ftp://example.com',
+    'https://u:p@feeds.example.com',
+    'https://feeds.example.com/?secret=private',
+    'https://feeds.example.com/#fragment',
+    'https://feeds.example.com/?',
+    'https://feeds.example.com/#',
+    'http://localhost:1337/\napi',
+  ]) {
+    assert.throws(() => parseFeedApiUrl(value), Error, value)
+  }
 })
 
 test('safe URLs reject executable schemes, credentials, and embedded controls', () => {
@@ -206,9 +222,15 @@ test('existing Partner-ads links preserve an unencoded destination query and val
   )
 })
 
-test('official Danish feed rows normalize into safe products and offers', () => {
+test('API JSON maps product fields and preserves cache freshness and publisher attribution', () => {
   const result = parsePartnerAdsFeed(
-    xml({ color: 'Grøn', leveringstid: '1–3 dage', ean: '5701234567899' }),
+    rows({
+      color: 'Grøn',
+      size: 'S|M',
+      gender: 'U',
+      deliveryTime: '1–3 dage',
+      ean: '4006381333931',
+    }),
     config,
     options,
   )
@@ -219,126 +241,160 @@ test('official Danish feed rows normalize into safe products and offers', () => 
   assert.match(product.slug, /^kaffemaskine-aeroe-/)
   assert.equal(product.demo, false)
   assert.equal(product.specs.Farve, 'Grøn')
+  assert.equal(product.specs.Størrelse, 'S|M')
+  assert.equal(product.specs.Køn, 'U')
+  assert.equal(product.specs.Leveringstid, '1–3 dage')
   assert.equal(product.offers[0].price, 1299.95)
   assert.equal(product.offers[0].shipping, 39)
+  assert.equal(product.offers[0].currency, 'DKK')
   assert.equal(product.offers[0].updatedAt, options.updatedAt)
+  assert.equal(product.offers[0].merchant, config.merchant)
+  assert.equal(product.offers[0].programId, config.programId)
   assert.equal(product.offers[0].url, 'https://merchant.example/coffee?a=1&b=2')
   assert.equal(product.offers[0].affiliateUrl, undefined)
 })
 
-test('merchant feed field aliases and case variations are supported', () => {
-  const input =
-    '<produkter><produkt><Produktnavn>Lampe</Produktnavn><Nypris>399,50</Nypris><Beskrivelse>Lys til bordet</Beskrivelse><Billedurl>https://merchant.example/lamp.jpg</Billedurl><Vareurl>https://merchant.example/lamp</Vareurl><Lagerstatus>1</Lagerstatus></produkt></produkter>'
-  const product = parsePartnerAdsFeed(input, config, options).products[0]
-  assert.equal(product.description, 'Lys til bordet')
-  assert.equal(product.offers[0].price, 399.5)
-  assert.equal(product.offers[0].shipping, undefined)
+test('nullable shipping stays unknown, zero stays free, and stock is never inferred from raw text', () => {
+  for (const value of [null, undefined]) {
+    assert.equal(
+      parsePartnerAdsFeed(rows({ shippingCost: value }), config, options)
+        .products[0].offers[0].shipping,
+      undefined,
+    )
+  }
+  assert.equal(
+    parsePartnerAdsFeed(rows({ shippingCost: 0 }), config, options).products[0]
+      .offers[0].shipping,
+    0,
+  )
+  assert.equal(
+    parsePartnerAdsFeed(rows({ inStock: false }), config, options).products[0]
+      .offers[0].inStock,
+    false,
+  )
+  for (const value of [null, undefined, 1, 'true']) {
+    assert.equal(
+      parsePartnerAdsFeed(
+        rows({ inStock: value, stock: 'instock' }),
+        config,
+        options,
+      ).rejectedRows,
+      1,
+    )
+  }
 })
 
-test('HTML description content is reduced to plain text', () => {
+test('HTML is stripped from display text and absent optional attributes have safe defaults', () => {
   const product = parsePartnerAdsFeed(
-    xml({ produktbeskrivelse: '<p>God <strong>kaffe</strong>.</p>' }),
+    rows({
+      description: '<p>God <strong>kaffe</strong>.</p>',
+      brand: '',
+      category: '',
+      color: undefined,
+    }),
     config,
     options,
   ).products[0]
   assert.equal(product.description.includes('<'), false)
   assert.match(product.description, /God kaffe/)
+  assert.equal(product.brand, 'Ukendt mærke')
+  assert.equal(product.category, 'Øvrigt')
+  assert.equal(product.specs.Farve, undefined)
 })
 
-test('out of stock is explicit; malformed or missing essential data is omitted', () => {
-  assert.equal(
-    parsePartnerAdsFeed(xml({ lagerstatus: 'udsolgt' }), config, options)
-      .products[0].offers[0].inStock,
-    false,
-  )
-  const invalidRows: Record<string, string>[] = [
-    { pris: '-1' },
-    { pris: '0' },
-    { pris: 'not a price' },
-    { fragtomk: '-2' },
-    { fragtomk: 'fra 29 kr.' },
-    { lagerstatus: '' },
-    { lagerstatus: 'måske' },
-    { produktnavn: '' },
-    { billedurl: 'javascript:alert(1)' },
-    { vareurl: 'file:///c:/private' },
+test('malformed essential data is rejected without coercing API nulls or strings into prices', () => {
+  for (const changes of [
+    { price: null },
+    { price: undefined },
+    { price: '1299.95' },
+    { price: -1 },
+    { price: 0 },
+    { price: Infinity },
+    { price: NaN },
+    { price: 100_000_001 },
+    { shippingCost: -1 },
+    { shippingCost: '0' },
+    { shippingCost: Infinity },
+    { name: '' },
+    { imageUrl: 'javascript:alert(1)' },
+    { productUrl: 'file:///private' },
     { currency: 'EUR' },
-  ]
-  for (const changes of invalidRows) {
-    const result = parsePartnerAdsFeed(xml(changes), config, options)
+    { id: 123 },
+    { ean: 4006381333931 },
+  ]) {
+    const result = parsePartnerAdsFeed(rows(changes), config, options)
     assert.equal(result.products.length, 0, JSON.stringify(changes))
     assert.equal(result.rejectedRows, 1)
   }
   assert.equal(
-    parsePartnerAdsFeed(xml({ fragtomk: 'gratis' }), config, options)
-      .products[0].offers[0].shipping,
-    0,
-  )
-})
-
-test('XML entities in merchant query strings are decoded exactly once', () => {
-  const source = xml().replace(
-    '<![CDATA[https://merchant.example/coffee?a=1&b=2]]>',
-    'https://merchant.example/coffee?a=1&amp;b=2',
-  )
-  assert.equal(
-    parsePartnerAdsFeed(source, config, options).products[0].offers[0].url,
-    'https://merchant.example/coffee?a=1&b=2',
-  )
-})
-
-test('malformed XML, entity declarations, large feeds, and row overflow fail closed', () => {
-  for (const source of [
-    '{"products": []}',
-    '<produkter><produkt></produkter>',
-    '<html><body>Login required</body></html>',
-    '<!DOCTYPE produkter [<!ENTITY xxe SYSTEM "file:///secret">]><produkter><produkt>&xxe;</produkt></produkter>',
-    '<!DOCTYPE produkter><produkter/>',
-  ])
-    assert.throws(() => parsePartnerAdsFeed(source, config, options))
-  assert.throws(
-    () => parsePartnerAdsFeed(' '.repeat(MAX_FEED_BYTES + 1), config, options),
-    /størrelsesgrænsen/,
+    parsePartnerAdsFeed([null, [], false], config, options).rejectedRows,
+    3,
   )
   assert.throws(
     () =>
-      parsePartnerAdsFeed(
-        `<produkter>${'<produkt/>'.repeat(MAX_FEED_ROWS + 1)}</produkter>`,
-        config,
-        options,
-      ),
+      parsePartnerAdsFeed(Array(MAX_FEED_ROWS + 1).fill(null), config, options),
     /for mange/,
   )
   assert.throws(
-    () => parsePartnerAdsFeed(xml(), config, { updatedAt: 'bad-date' }),
+    () => parsePartnerAdsFeed(rows(), config, { updatedAt: 'bad-date' }),
     /opdateringstidspunkt/,
+  )
+  assert.deepEqual(parsePartnerAdsFeed([], config, options), {
+    products: [],
+    rejectedRows: 0,
+    totalRows: 0,
+  })
+})
+
+test('API tracking links remain available only with a safe direct destination and correct affiliate ID', () => {
+  const destination = 'https://merchant.example/coffee?a=1&b=2'
+  const tracked =
+    'https://www.partner-ads.com/dk/klikbanner.php?bannerid=789&partnerid=456&uid=guide&htmlurl=' +
+    destination
+  const offer = parsePartnerAdsFeed(
+    rows({ productUrl: tracked }),
+    config,
+    options,
+  ).products[0].offers[0]
+  assert.equal(offer.affiliateUrl, tracked)
+  assert.equal(offer.url, destination)
+  assert.equal(
+    parsePartnerAdsFeed(rows({ productUrl: tracked }), config, {
+      ...options,
+      partnerId: '999',
+    }).rejectedRows,
+    1,
   )
 })
 
-test('validated matching GTINs group merchant offers with deterministic output', () => {
-  // This is a known valid test GTIN, used only as an identifier in a synthetic fixture.
-  const a = parsePartnerAdsFeed(xml({ ean: '4006381333931' }), config, options)
+test('validated GTINs group merchants deterministically and source IDs retain leading zeroes', () => {
+  const a = parsePartnerAdsFeed(rows({ ean: '4006381333931' }), config, options)
     .products[0]
   const b = parsePartnerAdsFeed(
-    xml({ ean: '04006381333931', produktnavn: 'Andet navn', pris: '1199,00' }),
-    { ...config, programId: '124', merchant: 'Anden forhandler' },
+    rows({ ean: '04006381333931', name: 'Andet navn', price: 1199 }),
+    { ...config, rid: '5678', programId: '124', merchant: 'Anden forhandler' },
     options,
   ).products[0]
   const merged = mergeCatalogProducts([a, b])
   assert.equal(merged.length, 1)
   assert.equal(merged[0].offers.length, 2)
   assert.equal(merged[0].offers[0].merchant, 'Anden forhandler')
-  assert.deepEqual(mergeCatalogProducts([a, b]), mergeCatalogProducts([b, a]))
-  assert.equal(mergeCatalogProducts([a, a]).length, 1)
+  assert.deepEqual(merged, mergeCatalogProducts([b, a]))
   assert.equal(mergeCatalogProducts([a, a])[0].offers.length, 1)
-  assert.equal(a.offers.length, 1, 'merging must not mutate an input product')
+  assert.equal(a.offers.length, 1)
+  const separate = parsePartnerAdsFeed(
+    [...rows({ id: '000123' }), ...rows({ id: '123' })],
+    config,
+    options,
+  )
+  assert.equal(separate.products.length, 2)
 })
 
 test('invalid EANs and same names never combine unrelated merchants', () => {
-  const a = parsePartnerAdsFeed(xml({ ean: '4006381333930' }), config, options)
+  const a = parsePartnerAdsFeed(rows({ ean: '4006381333930' }), config, options)
     .products[0]
   const b = parsePartnerAdsFeed(
-    xml({ ean: '4006381333930' }),
+    rows({ ean: '4006381333930' }),
     { ...config, programId: '124' },
     options,
   ).products[0]
