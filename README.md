@@ -17,7 +17,7 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). No API key, database, Partner-ads account or environment file is needed for the demo.
 
-For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` when you are ready to configure a live site. Never commit private feed URLs or credentials.
+For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` when you are ready to configure a live site. Never commit private feed settings or credentials.
 
 ## What is included
 
@@ -25,7 +25,7 @@ For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` wh
 - Search, category/brand/price filters and sorting, with shareable catalog URLs.
 - Multiple offers per product, known delivery charges, stock indicators and freshness checks.
 - Up to four products in a comparison and browser-local favorites.
-- Partner-ads XML feed import on the server, matching validated product identifiers across merchants and rejection of invalid data.
+- Server-side product import through [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed), matching validated product identifiers across merchants and rejecting invalid data.
 - Affiliate links that respect the visitor's saved choice; direct merchant links without affiliate consent.
 - Optional approved banner placements, loaded only after the visitor allows affiliate tracking.
 - A manually maintained offers/coupon page with validity dates and clear conditions.
@@ -37,15 +37,20 @@ This is a storefront and publishing template. It does not include a checkout, or
 
 ## Configure your site
 
-| Setting                      | Purpose                                                                                               |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`       | Your public HTTPS origin; used for canonical URLs and search metadata.                                |
-| `NEXT_PUBLIC_PUBLISHER_NAME` | The actual person or business publishing the website.                                                 |
-| `NEXT_PUBLIC_CONTACT_EMAIL`  | A real contact address shown on information pages.                                                    |
-| `PARTNER_ADS_PARTNER_ID`     | Your affiliate ID; required when constructing tracking links from direct product URLs.                |
-| `PARTNER_ADS_FEEDS`          | Server-only JSON configuration for individually approved advertiser feeds. Leave unset for demo mode. |
+| Setting                      | Purpose                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`       | Your public HTTPS origin; used for canonical URLs and search metadata.                                                                                                   |
+| `NEXT_PUBLIC_PUBLISHER_NAME` | The actual person or business publishing the website.                                                                                                                    |
+| `NEXT_PUBLIC_CONTACT_EMAIL`  | A real contact address shown on information pages.                                                                                                                       |
+| `PARTNER_ADS_PARTNER_ID`     | Your affiliate ID; required when constructing tracking links from direct product URLs.                                                                                   |
+| `PARTNER_ADS_API_URL`        | Server-only base URL of your separately running JSON feed API, e.g. `http://localhost:1337`. Required for live feeds.                                                    |
+| `PARTNER_ADS_FEEDS`          | Server-only JSON array of approved extracts with `rid`, `programId`, `merchant`, `approved: true`, `currency: "DKK"` and optional `bannerId`. Leave unset for demo mode. |
 
 Edit the brand name, description, language and other site defaults in `src/config/site.ts`. Details and an example feed configuration are in [Partner-ads setup](docs/partner-ads.md).
+
+Live data requires a separate deployment of [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed). This template calls its paginated `GET /api/feed/:rid` endpoint from the server; the service downloads and parses Partner-ads XML. Each configured extract must contain products from one approved advertiser in DKK. The extract `rid` is separate from partner, program and banner IDs. The API does not discover advertiser programs or replace account approval.
+
+If upgrading from direct XML feeds, replace each `url` entry with its feed-extract `rid`, explicitly add `currency: "DKK"`, set `PARTNER_ADS_API_URL`, and rebuild. Full merchant-feed URLs cannot be substituted for an extract ID. See the [migration and local setup instructions](docs/partner-ads.md#local-development-with-live-data).
 
 The template does not infer advertiser approval. You need an approved affiliate account, an approved website and approval for each program you use. `approved: true` records your confirmation; it does not make an approval request.
 
@@ -77,9 +82,9 @@ See [editing content](docs/content.md) for guide and offer examples. The include
 
 ## Deployment and keeping prices current
 
-For a Node-compatible host, run `npm ci`, `npm run check`, `npm run check:config` and `npm run build`, then serve with `npm start`. Set the same environment values in your host. Set public environment variables **before the build**, because Next.js embeds them in the frontend.
+For a Node-compatible host, run `npm ci`, `npm run check`, `npm run check:config` and `npm run build`, then serve with `npm start`. Set the same environment values in your host. Set public environment variables **before the build**, because Next.js embeds them in the frontend. The JSON feed API must be reachable from the build environment and the running Next.js server; deploy it first and use its deployed base URL. Rebuild after changing feed configuration.
 
-The server caches a successfully processed feed result and its fetch timestamp for one hour. Revalidation is request-driven; it is not a background scheduler or a promise that a supplier updates its source every hour. New product routes and changed guide content should be picked up with a fresh deployment.
+The server caches the processed catalog for one hour, preserving the API's `meta.cachedAt` as each offer's update time. This is the time the service downloaded the source, not proof of when an advertiser changed a price. The API has its own cache (one hour by default); reading cached API data does not reset its timestamp. Next.js revalidation is request-driven; it is not a background scheduler. New product routes and changed guide content should be picked up with a fresh deployment.
 
 For static hosting, run `npm run generate` and publish **`out/`**, with directory-index support. There is no server-side revalidation in an exported site. Schedule a fresh build and deploy at least daily, check its success, and rebuild immediately after content or feed changes. A normal server build is the better fit for a catalog that changes often.
 
@@ -89,6 +94,6 @@ Read the [launch checklist](docs/launch-checklist.md) before making the site pub
 
 ## Implementation notes
 
-The migration removes Nuxt, Vuex and Vue components in favor of React server-rendered pages and small client components for search, preferences and comparison. Feed credentials remain on the server. Markdown is rendered through `react-markdown` with raw HTML disabled and a restricted element list. Product data is validated before display; feed failures are surfaced instead of silently substituting demo products into a live catalog.
+The migration removes Nuxt, Vuex and Vue components in favor of React server-rendered pages and small client components for search, preferences and comparison. XML downloads and parsing belong to the separate JSON feed service. Feed settings remain on the server, and browsers never request the feed API. Markdown is rendered through `react-markdown` with raw HTML disabled and a restricted element list. Product data is validated before display; feed failures are surfaced instead of silently substituting demo products into a live catalog.
 
 The implementation is informed by the [Partner-ads overview](https://www.partner-ads.com/dk/guide-affiliate-annoncoer.php), [product-feed guide](https://www.partner-ads.com/dk/guide-til-affiliate-hele-produktfeeds.php), [XML specification](https://www.partner-ads.com/dk/feed_advinfo.htm) and [affiliate terms](https://www.partner-ads.com/dk/affiliatebetingelser.php). [Partner-ads setup](docs/partner-ads.md) documents the supported scope and links to the relevant primary sources.

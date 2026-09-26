@@ -1,5 +1,5 @@
 import { loadEnvConfig } from '@next/env'
-import { parseFeedConfig } from '../src/lib/feed'
+import { parseFeedApiUrl, parseFeedConfig } from '../src/lib/feed'
 
 loadEnvConfig(process.cwd())
 
@@ -61,9 +61,16 @@ if (!rawFeeds?.trim()) {
   )
 } else {
   try {
+    parseFeedApiUrl(process.env.PARTNER_ADS_API_URL || '')
+  } catch {
+    problems.push(
+      'Set PARTNER_ADS_API_URL to the server-only HTTP(S) base URL of your partner-ads-json-feed service, without credentials, query, or fragment.',
+    )
+  }
+  try {
     const feeds = parseFeedConfig(rawFeeds)
     notes.push(
-      `${feeds.length} approved feed configuration(s) validated. Feed URLs and credentials have not been printed.`,
+      `${feeds.length} approved DKK feed extract configuration(s) validated. Service availability and live responses have not been checked.`,
     )
     if (!partnerId)
       notes.push(
@@ -75,7 +82,7 @@ if (!rawFeeds?.trim()) {
       )
   } catch {
     problems.push(
-      'PARTNER_ADS_FEEDS must be a JSON array of unique HTTPS feeds with string programId, merchant, approved: true, and optional string bannerId.',
+      'PARTNER_ADS_FEEDS must be a JSON array of unique extracts with string rid, programId, merchant, currency: "DKK", approved: true, and optional string bannerId. Replace legacy url entries with the extract rid and set PARTNER_ADS_API_URL; rid is not the program, partner, or banner ID.',
     )
   }
 }
@@ -90,6 +97,6 @@ if (problems.length > 0) {
   process.exitCode = 1
 } else {
   console.log(
-    '\nConfiguration structure is ready. Confirm live feed results, advertiser approval, contact details, and your privacy text before launch.',
+    '\nConfiguration structure is ready. Ensure the feed API is reachable during builds and at runtime, then confirm live feed results, advertiser approval, contact details, and your privacy text before launch.',
   )
 }
