@@ -1,0 +1,105 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Atelier luxe",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#faf7f0",
+      "foreground": "#30291e",
+      "card": "#fffdf7",
+      "primary": "#6c5020",
+      "primaryForeground": "#ffffff",
+      "secondary": "#e9e0cd",
+      "secondaryForeground": "#55452b",
+      "muted": "#eee8dd",
+      "mutedForeground": "#6b604f",
+      "accent": "#594434",
+      "accentForeground": "#ffffff",
+      "border": "#dcd2bd",
+      "input": "#b5a381",
+      "ring": "#8a6328",
+      "success": "#47613a",
+      "warning": "#805e19",
+      "destructive": "#a64235",
+      "imageBackground": "#e7ddc7",
+      "overlayForeground": "#fff9ee"
+    },
+    "dark": {
+      "background": "#191611",
+      "foreground": "#f6efdf",
+      "card": "#241f18",
+      "primary": "#dec58c",
+      "primaryForeground": "#302512",
+      "secondary": "#3d3325",
+      "secondaryForeground": "#ecdfc2",
+      "muted": "#2c261d",
+      "mutedForeground": "#c3b79e",
+      "accent": "#d6af91",
+      "accentForeground": "#352419",
+      "border": "#524632",
+      "input": "#807052",
+      "ring": "#dec58c",
+      "success": "#b7cd9b",
+      "warning": "#e7c778",
+      "destructive": "#f09f8e",
+      "imageBackground": "#423724",
+      "overlayForeground": "#fff9ee"
+    }
+  },
+  "typography": {
+    "headingFont": "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+    "bodyFont": "'DM Sans', Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "googleFonts": [
+      {
+        "family": "Cormorant Garamond",
+        "weights": [400, 500, 600],
+        "italic": true
+      },
+      {
+        "family": "DM Sans",
+        "weights": [400, 500, 600],
+        "italic": true
+      }
+    ],
+    "baseSize": 16,
+    "scale": 1.04,
+    "headingWeight": 500,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.05,
+    "bodyLineHeight": 1.75,
+    "headingLetterSpacing": -0.04,
+    "bodyLetterSpacing": 0.01
+  },
+  "radius": {
+    "card": 0,
+    "button": 0,
+    "input": 0
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 2,
+      "blur": 16,
+      "spread": -6,
+      "opacity": 0.06,
+      "color": "#66502b"
+    },
+    "floating": {
+      "x": 0,
+      "y": 10,
+      "blur": 36,
+      "spread": -8,
+      "opacity": 0.2,
+      "color": "#463723"
+    }
+  },
+  "layout": {
+    "contentWidth": 1160,
+    "sectionSpacing": 96,
+    "gap": 32,
+    "density": 1.12
+  }
+}

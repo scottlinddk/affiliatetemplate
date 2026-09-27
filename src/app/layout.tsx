@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { site } from '@/config/site'
 import { Header } from '@/components/header'
 import { defaultTheme, themeCss } from '@/lib/theme'
+import { googleFontStylesheets } from '@/lib/google-fonts'
 import {
   ConsentSettings,
   PreferenceButton,
@@ -31,6 +32,16 @@ export default function RootLayout({
   return (
     <html lang={site.language} data-scroll-behavior="smooth">
       <head>
+        {googleFontStylesheets(defaultTheme.typography.googleFonts).map(
+          (href) => (
+            <link
+              key={href}
+              rel="stylesheet"
+              href={href}
+              data-theme-font="site"
+            />
+          ),
+        )}
         <style id="site-theme">{themeCss(defaultTheme)}</style>
       </head>
       <body>

@@ -8,11 +8,20 @@ Open [the design playground](https://scottlinddk.github.io/affiliatetemplate/des
 
 The playground changes its preview only. It does not save to your repository or change other visitors' sites. JSON import supports the full configuration, including values without a dedicated visual control. Invalid imports leave the previous preview intact.
 
-Three starting points are included in `src/config/themes/`:
+Ten starting points are included in `src/config/themes/`:
 
-- **Botanical**: warm paper, forest green, editorial serif headings and restrained corners.
-- **Ocean**: cool neutrals, blue accents, sans-serif headings and softer shapes.
-- **Studio**: warm colors, bold typography and a more graphic treatment.
+| Preset                  | Character                                                  | Fonts                        |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------- |
+| **Botanical editorial** | Warm paper, forest green and restrained corners            | Georgia / Arial (local)      |
+| **Ocean minimal**       | Cool neutrals, blue accents and crisp shapes               | System sans (local)          |
+| **Warm studio**         | Warm colors, bold typography and graphic details           | System fonts (local)         |
+| **Midnight tech**       | Dark surfaces, bright accents and a compact technical feel | Space Grotesk / Inter        |
+| **Atelier luxe**        | Cream and gold, expressive serif headings and sharp edges  | Cormorant Garamond / DM Sans |
+| **Cherry pop**          | Pink, playful typography and rounded shapes                | Outfit / Nunito              |
+| **Nordic mono**         | Neutral colors, precise typography and minimal decoration  | Space Mono / IBM Plex Sans   |
+| **Terracotta journal**  | Warm earth tones and an editorial rhythm                   | Lora / Source Sans 3         |
+| **Lavender cloud**      | Soft violet, generous space and pill buttons               | Manrope / DM Sans            |
+| **Field notes**         | Earthy greens, characterful headings and practical details | Fraunces / Work Sans         |
 
 Each has light and dark palettes. Presets are independent starting points; edits to the active `design.json` do not modify the other presets.
 
@@ -58,7 +67,7 @@ Choose foreground/background pairs together and check legibility in both modes. 
 
 ### Fonts
 
-The bundled presets use system fonts and do not require a font service or a network download. A font stack is a CSS family list, for example:
+The original Botanical, Ocean and Studio presets use local/system fonts. The seven newer presets include Google Fonts pairings. A font stack is a CSS family list, for example:
 
 ```json
 {
@@ -70,7 +79,35 @@ The bundled presets use system fonts and do not require a font service or a netw
 
 This is a partial illustration of the `typography` group, not a complete theme. Keep the other typography fields when editing your file.
 
-Writing a font name does not download the font. To use a custom webfont, add licensed font files to `public/fonts/`, declare them with `@font-face` in your CSS, then put that family name in the JSON. Font asset URLs must include the deployed base path on GitHub Pages, for example `/affiliatetemplate/fonts/my-font.woff2`. Use `font-display: swap` and include a fallback family. Font declarations stay in CSS so the JSON remains a portable list of design settings.
+#### Google Fonts
+
+Choose a Google Font in the playground to set both its font stack and download configuration. The exported JSON carries these settings to your published site. No API key is needed.
+
+For manual configuration, add the optional `googleFonts` array inside `typography`, alongside your font stacks:
+
+```json
+{
+  "headingFont": "'Lora', Georgia, serif",
+  "bodyFont": "'Inter', Arial, sans-serif",
+  "monoFont": "'Courier New', monospace",
+  "googleFonts": [
+    { "family": "Lora", "weights": [400, 500, 600, 700], "italic": true },
+    { "family": "Inter", "weights": [400, 500, 600, 700] }
+  ]
+}
+```
+
+This is a partial `typography` example: retain the size, weight, line-height and tracking settings from your complete theme. Up to three families can be configured. Family names are Google Fonts names, not CSS stacks or URLs. Select weights and italic styles offered by that family. The playground includes curated choices; other Google Font family names can also be configured.
+
+The site loads the configured fonts from Google's CSS2 service in the visitor's browser using `display=swap`. The build itself does not contact Google, so static exports work without font downloads at build time. The playground loads selected fonts as needed, rather than downloading every preset's fonts when it opens. Fallback fonts remain usable if Google is unavailable or a family/style combination is invalid. Only font loading is shared globally; preview styling stays within the preview.
+
+Google Fonts support is optional and backward compatible. Omit `googleFonts` or use an empty array to avoid Google font requests. Use local font stacks as well when switching a theme fully back to system fonts. A Google Font's name in a stack alone does not download it.
+
+Loading fonts from Google creates browser requests to `fonts.googleapis.com` and `fonts.gstatic.com`; this is separate from affiliate tracking preferences. See the [Google Fonts CSS2 documentation](https://developers.google.com/fonts/docs/css2) for supported family/style syntax.
+
+#### Self-hosted fonts
+
+To use your own webfont files, add licensed files to `public/fonts/`, declare them with `@font-face` in your CSS, then put that family name in the JSON without a Google Fonts entry. Font asset URLs must include the deployed base path on GitHub Pages, for example `/affiliatetemplate/fonts/my-font.woff2`. Use `font-display: swap` and include a fallback family.
 
 ## What is separate from the theme
 
