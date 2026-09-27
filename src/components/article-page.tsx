@@ -11,6 +11,7 @@ import {
   serializeStructuredData,
 } from '@/lib/article-seo'
 import type { ContentType } from '@/lib/types'
+import { withBasePath } from '@/lib/paths'
 import { ArticleMarkdown } from './article-markdown'
 import { BannerPlacement } from './banner'
 
@@ -88,7 +89,7 @@ export async function ArticlePage({
       </header>
       <Image
         className="article-image"
-        src={article.image}
+        src={withBasePath(article.image)}
         alt=""
         width={1200}
         height={800}
@@ -176,7 +177,12 @@ export async function ArticlePage({
                 key={other.slug}
                 className="guide-card"
               >
-                <Image src={other.image} alt="" width={1200} height={800} />
+                <Image
+                  src={withBasePath(other.image)}
+                  alt=""
+                  width={1200}
+                  height={800}
+                />
                 <div className="guide-card-content">
                   <span className="eyebrow">
                     {contentSection(other.type).label} · {other.category}

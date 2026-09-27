@@ -9,6 +9,7 @@ import { OfferTable } from '@/components/offer-table'
 import { Icon } from '@/components/icons'
 import { site } from '@/config/site'
 import { BannerPlacement } from '@/components/banner'
+import { absoluteSiteUrl } from '@/lib/paths'
 export const revalidate = 3600
 export async function generateStaticParams() {
   const { products } = await getCatalog()
@@ -46,7 +47,7 @@ export default async function ProductPage({
     '@type': 'Product',
     name: product.name,
     description: product.description,
-    image: product.image,
+    image: absoluteSiteUrl(product.image),
     brand: { '@type': 'Brand', name: product.brand },
     offers: offers.map((o) => ({
       '@type': 'Offer',

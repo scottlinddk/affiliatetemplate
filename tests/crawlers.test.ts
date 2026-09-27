@@ -63,12 +63,64 @@ test('demo blocks wildcard and every explicit agent even if configured to allow 
     GPTBot: true,
     'Google-Extended': true,
   })
-  assert.equal(robots.sitemap, undefined)
+  assert.equal(robots.sitemap, 'https://example.com/sitemap.xml')
   assert.ok(Array.isArray(robots.rules))
   assert.equal(robots.rules.length, 5)
   for (const rule of robots.rules) {
     assert.equal(rule.disallow, '/')
     assert.equal(rule.allow, undefined)
+  }
+})
+
+test('crawl rules and the sitemap preserve a deployment subdirectory', () => {
+  const robots = buildRobots(
+    true,
+    'https://example.com/affiliatetemplate/',
+    site.crawlers,
+  )
+  assert.equal(
+    robots.sitemap,
+    'https://example.com/affiliatetemplate/sitemap.xml',
+  )
+  assert.ok(Array.isArray(robots.rules))
+  for (const rule of robots.rules) {
+    if (!rule.allow) continue
+    assert.equal(rule.allow, '/affiliatetemplate/')
+    assert.deepEqual(rule.disallow, [
+      '/affiliatetemplate/sammenlign$',
+      '/affiliatetemplate/sammenlign?',
+      '/affiliatetemplate/sammenlign/',
+    ])
+  }
+  const demo = buildRobots(
+    false,
+    'https://example.com/affiliatetemplate/',
+    site.crawlers,
+  )
+  assert.equal(demo.sitemap, robots.sitemap)
+  assert.ok(Array.isArray(demo.rules))
+  assert.ok(demo.rules.every((rule) => rule.disallow === '/' && !rule.allow))
+})
+
+test('llms index preserves the deployment subdirectory for every link', () => {
+  const text = buildLlmsText(
+    { ...site, url: 'https://example.com/affiliatetemplate/' },
+    [
+      {
+        title: 'Review',
+        description: 'Description',
+        path: '/anmeldelser/test',
+      },
+    ],
+  )
+  for (const path of [
+    '/produkter',
+    '/om',
+    '/privatliv',
+    '/sitemap.xml',
+    '/anmeldelser/test',
+  ]) {
+    assert.ok(text.includes(`https://example.com/affiliatetemplate${path}`))
   }
 })
 

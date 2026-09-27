@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { site } from '../config/site'
 import { contentPath, contentSection } from './content-paths'
+import { absoluteSiteUrl } from './paths'
 import type { Guide } from './types'
 
 export function articleMetadata(article: Guide): Metadata {
@@ -26,7 +27,9 @@ export function articleMetadata(article: Guide): Metadata {
 }
 
 export function articleStructuredData(article: Guide) {
-  const url = new URL(contentPath(article), site.url).href
+  const prefix = new URL(site.url).pathname.replace(/\/+$/, '')
+  const resolveUrl = (path: string) => absoluteSiteUrl(path, site.url, prefix)
+  const url = resolveUrl(contentPath(article))
   const section = contentSection(article.type)
   return [
     {
@@ -36,7 +39,7 @@ export function articleStructuredData(article: Guide) {
       mainEntityOfPage: url,
       headline: article.title,
       description: article.description,
-      image: new URL(article.image, site.url).href,
+      image: resolveUrl(article.image),
       datePublished: article.date,
       ...(article.updated ? { dateModified: article.updated } : {}),
       ...(article.author
@@ -52,13 +55,13 @@ export function articleStructuredData(article: Guide) {
           '@type': 'ListItem',
           position: 1,
           name: 'Forside',
-          item: new URL('/', site.url).href,
+          item: resolveUrl('/'),
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: section.label,
-          item: new URL(section.path, site.url).href,
+          item: resolveUrl(section.path),
         },
         { '@type': 'ListItem', position: 3, name: article.title, item: url },
       ],

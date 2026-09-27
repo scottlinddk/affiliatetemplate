@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { site } from '@/config/site'
+import { absoluteSiteUrl } from '@/lib/paths'
 import { getCatalog } from '@/lib/catalog'
 import { getGuides } from '@/lib/guides'
 import { getCategories } from '@/lib/categories'
@@ -20,15 +20,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/om',
       '/privatliv',
       '/tilbud',
-    ].map((p) => ({ url: new URL(p || '/', site.url).href })),
+    ].map((p) => ({ url: absoluteSiteUrl(p || '/') })),
     ...getCategories(products).map((c) => ({
-      url: new URL(`/kategorier/${c.slug}`, site.url).href,
+      url: absoluteSiteUrl(`/kategorier/${c.slug}`),
     })),
     ...products.map((p) => ({
-      url: new URL(`/produkter/${p.slug}`, site.url).href,
+      url: absoluteSiteUrl(`/produkter/${p.slug}`),
     })),
     ...getGuides().map((g) => ({
-      url: new URL(contentPath(g), site.url).href,
+      url: absoluteSiteUrl(contentPath(g)),
       lastModified: g.updated ?? g.date,
     })),
   ]

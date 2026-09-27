@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getGuides } from '@/lib/guides'
 import { contentPath, contentSection } from '@/lib/content-paths'
 import type { ContentType } from '@/lib/types'
+import { withBasePath } from '@/lib/paths'
 
 export function ArticleList({ type }: { type: ContentType }) {
   const articles = getGuides().filter((article) => article.type === type)
@@ -37,7 +38,12 @@ export function ArticleList({ type }: { type: ContentType }) {
             key={article.slug}
             className="guide-card"
           >
-            <Image src={article.image} alt="" width={1200} height={800} />
+            <Image
+              src={withBasePath(article.image)}
+              alt=""
+              width={1200}
+              height={800}
+            />
             <div className="guide-card-content">
               <span className="eyebrow">{article.category}</span>
               <h2>{article.title}</h2>

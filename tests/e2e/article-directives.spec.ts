@@ -2,6 +2,7 @@ import { build } from 'esbuild'
 import { expect, test } from '@playwright/test'
 
 const directUrl = 'https://shop.example/article-product'
+const fixtureBasePath = '/affiliatetemplate'
 const affiliateUrl =
   'https://www.partner-ads.com/dk/klikbanner.php?partnerid=123&bannerid=456'
 const bannerImage = 'https://advertiser.example/original-article-banner.gif'
@@ -89,6 +90,8 @@ test.beforeAll(async () => {
     define: {
       'process.env': '{}',
       'process.env.NODE_ENV': '"test"',
+      'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(fixtureBasePath),
+      'process.env.__NEXT_ROUTER_BASEPATH': JSON.stringify(fixtureBasePath),
     },
     // Exercise both real placements without adding advertisers to the template.
     plugins: [
@@ -138,6 +141,13 @@ test('article product, offers, CTA and banners follow consent and withdrawal', a
     }),
   )
   await page.goto('/__article-directives-fixture')
+
+  await expect(
+    page.getByRole('link', { name: 'Læs om privatliv' }),
+  ).toHaveAttribute('href', `${fixtureBasePath}/privatliv`)
+  await expect(
+    page.getByRole('link', { name: 'Artikelprodukt', exact: true }),
+  ).toHaveAttribute('href', `${fixtureBasePath}/produkter/article-product`)
 
   const sponsored = page.locator(
     'a[rel="sponsored nofollow noopener noreferrer"]',

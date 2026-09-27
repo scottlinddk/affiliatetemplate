@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { site } from '../src/config/site'
 import {
   articleMetadata,
   articleStructuredData,
@@ -78,4 +79,41 @@ test('structured data serialization cannot terminate the script element', () => 
   const serialized = serializeStructuredData(payload)
   assert.ok(!serialized.includes('<'))
   assert.deepEqual(JSON.parse(serialized), payload)
+})
+
+test('article schema URLs and breadcrumbs retain a deployment subdirectory', () => {
+  const originalUrl = site.url
+  try {
+    site.url = 'https://example.com/affiliatetemplate/'
+    const structured = JSON.parse(
+      JSON.stringify(articleStructuredData(article)),
+    )
+    const url = 'https://example.com/affiliatetemplate/anmeldelser/a-review'
+    assert.equal(structured[0]['@id'], `${url}#article`)
+    assert.equal(structured[0].mainEntityOfPage, url)
+    assert.equal(
+      structured[0].image,
+      'https://example.com/affiliatetemplate/images/coffee.svg',
+    )
+    assert.deepEqual(
+      structured[1].itemListElement.map((item: { item: string }) => item.item),
+      [
+        'https://example.com/affiliatetemplate/',
+        'https://example.com/affiliatetemplate/anmeldelser',
+        url,
+      ],
+    )
+    assert.equal(structured[2]['@id'], `${url}#faq`)
+    const external = JSON.parse(
+      JSON.stringify(
+        articleStructuredData({
+          ...article,
+          image: 'https://images.example.com/coffee.jpg',
+        }),
+      ),
+    )
+    assert.equal(external[0].image, 'https://images.example.com/coffee.jpg')
+  } finally {
+    site.url = originalUrl
+  }
 })

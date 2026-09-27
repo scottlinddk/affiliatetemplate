@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { absoluteSiteUrl, withBasePath } from './paths'
 
 export type CrawlerPolicy = {
   'OAI-SearchBot': boolean
@@ -15,10 +16,14 @@ export function buildRobots(
   url: string,
   policy: CrawlerPolicy,
 ): MetadataRoute.Robots {
+  const prefix = new URL(url).pathname.replace(/\/+$/, '')
   const rule = (userAgent: string, allowed: boolean) => ({
     userAgent,
     ...(live && allowed
-      ? { allow: '/', disallow: [...excludedPaths] }
+      ? {
+          allow: withBasePath('/', prefix),
+          disallow: excludedPaths.map((path) => withBasePath(path, prefix)),
+        }
       : { disallow: '/' }),
   })
   return {
@@ -26,7 +31,7 @@ export function buildRobots(
       rule('*', true),
       ...Object.entries(policy).map(([agent, allowed]) => rule(agent, allowed)),
     ],
-    ...(live ? { sitemap: new URL('/sitemap.xml', url).href } : {}),
+    sitemap: absoluteSiteUrl('/sitemap.xml', url, prefix),
   }
 }
 
@@ -46,8 +51,9 @@ export function buildLlmsText(
   site: IndexSite,
   articles: { title: string; description: string; path: string }[],
 ): string {
+  const prefix = new URL(site.url).pathname.replace(/\/+$/, '')
   const link = (title: string, pathname: string) =>
-    `[${markdownText(title)}](${new URL(pathname, site.url).href})`
+    `[${markdownText(title)}](${absoluteSiteUrl(pathname, site.url, prefix)})`
   return [
     `# ${markdownText(site.name)}`,
     '',

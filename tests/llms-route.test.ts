@@ -8,6 +8,7 @@ import { contentPath } from '../src/lib/content-paths'
 test('llms endpoint exposes canonical articles only for enabled live sites', async () => {
   const feeds = process.env.PARTNER_ADS_FEEDS
   const enabled = site.llmsTxt
+  const originalUrl = site.url
   try {
     delete process.env.PARTNER_ADS_FEEDS
     assert.equal(GET().status, 404)
@@ -15,6 +16,7 @@ test('llms endpoint exposes canonical articles only for enabled live sites', asy
     site.llmsTxt = false
     assert.equal(GET().status, 404)
     site.llmsTxt = true
+    site.url = 'https://example.com/affiliatetemplate/'
     const response = GET()
     assert.equal(response.status, 200)
     assert.equal(
@@ -23,11 +25,16 @@ test('llms endpoint exposes canonical articles only for enabled live sites', asy
     )
     const body = await response.text()
     for (const article of getGuides()) {
-      assert.ok(body.includes(new URL(contentPath(article), site.url).href))
+      assert.ok(
+        body.includes(
+          `https://example.com/affiliatetemplate${contentPath(article)}`,
+        ),
+      )
     }
   } finally {
     if (feeds === undefined) delete process.env.PARTNER_ADS_FEEDS
     else process.env.PARTNER_ADS_FEEDS = feeds
     site.llmsTxt = enabled
+    site.url = originalUrl
   }
 })

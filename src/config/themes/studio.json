@@ -1,0 +1,93 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Warm studio",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#fff5e9",
+      "foreground": "#3d271e",
+      "card": "#fffdf8",
+      "primary": "#aa3e27",
+      "primaryForeground": "#ffffff",
+      "secondary": "#f9ddc3",
+      "secondaryForeground": "#713c25",
+      "muted": "#f6e8d8",
+      "mutedForeground": "#7b6152",
+      "accent": "#81449c",
+      "accentForeground": "#ffffff",
+      "border": "#e6cbb5",
+      "input": "#c99e80",
+      "ring": "#aa3e27",
+      "success": "#49703a",
+      "warning": "#92601c",
+      "destructive": "#b53337",
+      "imageBackground": "#f4dbc2",
+      "overlayForeground": "#fff8ee"
+    },
+    "dark": {
+      "background": "#261c19",
+      "foreground": "#fff0df",
+      "card": "#362723",
+      "primary": "#ffb18a",
+      "primaryForeground": "#452015",
+      "secondary": "#59372a",
+      "secondaryForeground": "#ffe2c6",
+      "muted": "#42302a",
+      "mutedForeground": "#d0b4a2",
+      "accent": "#dfb2f5",
+      "accentForeground": "#382045",
+      "border": "#64463a",
+      "input": "#926a55",
+      "ring": "#ffb18a",
+      "success": "#b4d19a",
+      "warning": "#efca80",
+      "destructive": "#ffa19d",
+      "imageBackground": "#5b3c30",
+      "overlayForeground": "#fff8ee"
+    }
+  },
+  "typography": {
+    "headingFont": "'Trebuchet MS', Arial, sans-serif",
+    "bodyFont": "'Segoe UI', Arial, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "baseSize": 16,
+    "scale": 1.03,
+    "headingWeight": 800,
+    "bodyWeight": 400,
+    "strongWeight": 700,
+    "headingLineHeight": 1.1,
+    "bodyLineHeight": 1.7,
+    "headingLetterSpacing": -0.035,
+    "bodyLetterSpacing": 0
+  },
+  "radius": {
+    "card": 22,
+    "button": 1000,
+    "input": 12
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 8,
+      "blur": 22,
+      "spread": -5,
+      "opacity": 0.12,
+      "color": "#743a22"
+    },
+    "floating": {
+      "x": 0,
+      "y": 12,
+      "blur": 32,
+      "spread": -4,
+      "opacity": 0.22,
+      "color": "#743a22"
+    }
+  },
+  "layout": {
+    "contentWidth": 1280,
+    "sectionSpacing": 76,
+    "gap": 26,
+    "density": 1.08
+  }
+}
