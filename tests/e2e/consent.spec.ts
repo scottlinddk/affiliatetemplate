@@ -2,6 +2,7 @@ import { build } from 'esbuild'
 import { expect, test, type Page } from '@playwright/test'
 
 const directUrl = 'https://shop.example/product?colour=green'
+const fixtureBasePath = '/affiliatetemplate'
 const affiliateUrl =
   'https://www.partner-ads.com/dk/klikbanner.php?partnerid=123&bannerid=456&htmlurl=https%3A%2F%2Fshop.example%2Fproduct%3Fcolour%3Dgreen'
 let fixtureHtml: string
@@ -36,7 +37,10 @@ test.beforeAll(async () => {
     format: 'iife',
     platform: 'browser',
     jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"test"' },
+    define: {
+      'process.env.NODE_ENV': '"test"',
+      'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(fixtureBasePath),
+    },
   })
   const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')
   fixtureHtml = `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Consent component test</title></head><body><main id="fixture"></main><script>${script}</script></body></html>`
@@ -61,6 +65,9 @@ test('affiliate links require consent, persist the decision, and revert immediat
       trackingRequests.push(request.url())
   })
   await openFixture(page)
+  await expect(
+    page.getByRole('link', { name: 'Læs om privatliv' }),
+  ).toHaveAttribute('href', `${fixtureBasePath}/privatliv`)
   const link = page.getByRole('link', { name: /Besøg butikken/ })
   await expect(link).toHaveAttribute('href', directUrl)
   await expect(link).toHaveAttribute('rel', /sponsored/)

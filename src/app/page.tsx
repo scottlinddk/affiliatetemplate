@@ -5,6 +5,7 @@ import { ProductCard } from '@/components/product-card'
 import { Icon } from '@/components/icons'
 import { getCategories } from '@/lib/categories'
 import { BannerPlacement } from '@/components/banner'
+import { withBasePath } from '@/lib/paths'
 export const revalidate = 3600
 export const metadata = { alternates: { canonical: '/' } }
 export default async function Home() {
@@ -55,7 +56,7 @@ export default async function Home() {
             <Icon name="leaf" size={20} />
           </div>
           <img
-            src="/images/hero.svg"
+            src={withBasePath('/images/hero.svg')}
             alt="Illustration af en hyggelig kaffekrog med lampe, kaffekande og kop"
             width="760"
             height="650"
@@ -106,7 +107,12 @@ export default async function Home() {
                     <Icon name="arrow" size={17} />
                   </span>
                 </div>
-                <img src={c.image} alt="" width="150" height="170" />
+                <img
+                  src={withBasePath(c.image)}
+                  alt=""
+                  width="150"
+                  height="170"
+                />
               </Link>
             ))}
         </div>
@@ -162,7 +168,12 @@ export default async function Home() {
                 className="guide-card"
                 key={g.slug}
               >
-                <img src={g.image} alt="" width="640" height="420" />
+                <img
+                  src={withBasePath(g.image)}
+                  alt=""
+                  width="640"
+                  height="420"
+                />
                 <div className="guide-card-content">
                   <p className="eyebrow">
                     {g.category} · {g.readingTime} min.

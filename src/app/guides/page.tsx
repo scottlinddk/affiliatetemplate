@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getGuides } from '@/lib/guides'
+import { withBasePath } from '@/lib/paths'
 
 export const metadata: Metadata = {
   title: 'Købsguides',
@@ -29,7 +30,12 @@ export default function GuidesPage() {
             className="guide-card"
             key={guide.slug}
           >
-            <Image src={guide.image} alt="" width={1200} height={800} />
+            <Image
+              src={withBasePath(guide.image)}
+              alt=""
+              width={1200}
+              height={800}
+            />
             <div className="guide-card-content">
               <span className="eyebrow">{guide.category}</span>
               <h2>{guide.title}</h2>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { site } from '@/config/site'
 import { Header } from '@/components/header'
+import { defaultTheme, themeCss } from '@/lib/theme'
 import {
   ConsentSettings,
   PreferenceButton,
@@ -29,6 +30,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang={site.language} data-scroll-behavior="smooth">
+      <head>
+        <style id="site-theme">{themeCss(defaultTheme)}</style>
+      </head>
       <body>
         <PreferencesProvider>
           <a href="#main" className="skip-link">
@@ -66,6 +70,9 @@ export default function RootLayout({
                 <h2>Godt at vide</h2>
                 <Link href="/om">Om os og reklamelinks</Link>
                 <Link href="/privatliv">Privatliv og cookies</Link>
+                {!process.env.PARTNER_ADS_FEEDS?.trim() && (
+                  <Link href="/design">Tilpas designet</Link>
+                )}
                 <PreferenceButton />
                 {site.contactEmail && (
                   <a href={`mailto:${site.contactEmail}`}>Kontakt os</a>

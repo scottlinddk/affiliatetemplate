@@ -1,0 +1,93 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Ocean minimal",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#f7fafc",
+      "foreground": "#152d40",
+      "card": "#ffffff",
+      "primary": "#065cab",
+      "primaryForeground": "#ffffff",
+      "secondary": "#e6f0f8",
+      "secondaryForeground": "#16436a",
+      "muted": "#edf2f6",
+      "mutedForeground": "#526675",
+      "accent": "#077781",
+      "accentForeground": "#ffffff",
+      "border": "#d5e0e8",
+      "input": "#b7c9d7",
+      "ring": "#0075cf",
+      "success": "#28754c",
+      "warning": "#8e6311",
+      "destructive": "#bd3448",
+      "imageBackground": "#e5eef5",
+      "overlayForeground": "#ffffff"
+    },
+    "dark": {
+      "background": "#0e1923",
+      "foreground": "#e4eff6",
+      "card": "#172734",
+      "primary": "#82c5ff",
+      "primaryForeground": "#072841",
+      "secondary": "#203b50",
+      "secondaryForeground": "#cde8fb",
+      "muted": "#1b2f3e",
+      "mutedForeground": "#a4bbcd",
+      "accent": "#66d2d7",
+      "accentForeground": "#072d30",
+      "border": "#314c60",
+      "input": "#50728a",
+      "ring": "#82c5ff",
+      "success": "#86d4a5",
+      "warning": "#edc276",
+      "destructive": "#ff9dad",
+      "imageBackground": "#28475d",
+      "overlayForeground": "#ffffff"
+    }
+  },
+  "typography": {
+    "headingFont": "Arial, Helvetica, sans-serif",
+    "bodyFont": "Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "baseSize": 15,
+    "scale": 1,
+    "headingWeight": 700,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.15,
+    "bodyLineHeight": 1.6,
+    "headingLetterSpacing": -0.04,
+    "bodyLetterSpacing": 0
+  },
+  "radius": {
+    "card": 2,
+    "button": 2,
+    "input": 2
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 2,
+      "blur": 8,
+      "spread": 0,
+      "opacity": 0.04,
+      "color": "#153b5a"
+    },
+    "floating": {
+      "x": 0,
+      "y": 8,
+      "blur": 28,
+      "spread": -5,
+      "opacity": 0.2,
+      "color": "#153b5a"
+    }
+  },
+  "layout": {
+    "contentWidth": 1380,
+    "sectionSpacing": 56,
+    "gap": 18,
+    "density": 0.95
+  }
+}

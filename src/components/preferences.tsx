@@ -1,5 +1,6 @@
 'use client'
 
+import { withBasePath } from '@/lib/paths'
 import {
   createContext,
   useContext,
@@ -97,7 +98,8 @@ export function ConsentSettings() {
         <p>
           Vi bruger lokal lagring til dine valg. Tillad affiliate-sporing, hvis
           du vil støtte os, når du handler. Uden tilladelse bruger vi direkte
-          butikslinks. <a href="/privatliv">Læs om privatliv</a>.
+          butikslinks. <a href={withBasePath('/privatliv')}>Læs om privatliv</a>
+          .
         </p>
       </div>
       <div className="consent-actions">

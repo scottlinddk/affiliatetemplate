@@ -1,9 +1,11 @@
+import { absoluteSiteUrl } from '@/lib/paths'
+
 export const site = {
   name: 'Velvalgt',
   tagline: 'Gode valg. Mere hverdagsglæde.',
   description:
     'Find produkter til en bedre hverdag. Sammenlign priser, udforsk vores købsguides, og find det, der passer til dig.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+  url: absoluteSiteUrl('/'),
   locale: 'da-DK',
   language: 'da',
   currency: 'DKK',

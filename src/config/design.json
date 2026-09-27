@@ -1,0 +1,93 @@
+{
+  "$schema": "./design.schema.json",
+  "version": 1,
+  "name": "Botanical editorial",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#fbfaf6",
+      "foreground": "#253d33",
+      "card": "#ffffff",
+      "primary": "#28513e",
+      "primaryForeground": "#ffffff",
+      "secondary": "#e9eddf",
+      "secondaryForeground": "#405740",
+      "muted": "#f0f0e7",
+      "mutedForeground": "#647060",
+      "accent": "#627b50",
+      "accentForeground": "#ffffff",
+      "border": "#dedfd5",
+      "input": "#c4cdbb",
+      "ring": "#966822",
+      "success": "#3e6b32",
+      "warning": "#886124",
+      "destructive": "#a54532",
+      "imageBackground": "#e8ecdf",
+      "overlayForeground": "#fff9ec"
+    },
+    "dark": {
+      "background": "#151e19",
+      "foreground": "#e6eddf",
+      "card": "#202d24",
+      "primary": "#bbd4a7",
+      "primaryForeground": "#172c1c",
+      "secondary": "#2a3c2e",
+      "secondaryForeground": "#d9e8d0",
+      "muted": "#253229",
+      "mutedForeground": "#a9b8a5",
+      "accent": "#d1bd8a",
+      "accentForeground": "#282115",
+      "border": "#3d4f3f",
+      "input": "#61755c",
+      "ring": "#e8c280",
+      "success": "#abd190",
+      "warning": "#e8c280",
+      "destructive": "#f39c88",
+      "imageBackground": "#344636",
+      "overlayForeground": "#fff9ec"
+    }
+  },
+  "typography": {
+    "headingFont": "Georgia, 'Times New Roman', serif",
+    "bodyFont": "Arial, Helvetica, sans-serif",
+    "monoFont": "'Courier New', monospace",
+    "baseSize": 15,
+    "scale": 1,
+    "headingWeight": 400,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.15,
+    "bodyLineHeight": 1.6,
+    "headingLetterSpacing": -0.03,
+    "bodyLetterSpacing": 0
+  },
+  "radius": {
+    "card": 6,
+    "button": 4,
+    "input": 3
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 3,
+      "blur": 12,
+      "spread": 0,
+      "opacity": 0,
+      "color": "#192e27"
+    },
+    "floating": {
+      "x": 0,
+      "y": 6,
+      "blur": 30,
+      "spread": 0,
+      "opacity": 0.13,
+      "color": "#192e27"
+    }
+  },
+  "layout": {
+    "contentWidth": 1320,
+    "sectionSpacing": 64,
+    "gap": 22,
+    "density": 1
+  }
+}
