@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { withBasePath } from '@/lib/paths'
 export function ProductImage({
   src,
   alt,
@@ -12,7 +13,7 @@ export function ProductImage({
   const [failed, setFailed] = useState(false)
   return (
     <img
-      src={failed ? '/images/placeholder.svg' : src}
+      src={withBasePath(failed ? '/images/placeholder.svg' : src)}
       alt={alt}
       width="640"
       height="520"

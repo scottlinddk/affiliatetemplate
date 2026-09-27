@@ -4,6 +4,21 @@ A Danish affiliate website built with **React, Next.js App Router and TypeScript
 
 The included brand, **Velvalgt**, is a starting point: replace the identity, editorial content and demo data with your own before launching.
 
+**[Open the live GitHub Pages demo](https://scottlinddk.github.io/affiliatetemplate/)** · **[Try the design playground](https://scottlinddk.github.io/affiliatetemplate/design/)**
+
+## Make the design your own
+
+Edit **[`src/config/design.json`](src/config/design.json)** to set the design guide for the entire storefront. It has editor autocomplete through [`design.schema.json`](src/config/design.schema.json), and invalid settings fail the build with a readable error.
+
+- Semantic colors for light and dark appearances, including backgrounds, text, buttons, borders, focus rings and status messages.
+- Separate heading, body and monospace fonts; type size, scale, weights, line height and letter spacing.
+- Card, button and input corners; card and floating-panel shadows.
+- Content width, section spacing, grid gaps and density.
+
+Start with the included Botanical, Ocean or Studio presets, or open `/design` to experiment visually, import a JSON theme and download your changes. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
+
+Read [the design guide](docs/design-guide.md) for every setting, font setup and preset examples. See [GitHub Pages deployment](docs/github-pages.md) to publish a copy under your own account.
+
 ## Start in a few minutes
 
 Requirements: Node.js 22 or newer and npm. To create your own repository with GitHub CLI:
@@ -40,6 +55,7 @@ This is a storefront and publishing template. It does not include a checkout, or
 | Setting                      | Purpose                                                                                                                                                                  |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `NEXT_PUBLIC_SITE_URL`       | Your public HTTPS origin; used for canonical URLs and search metadata.                                                                                                   |
+| `NEXT_PUBLIC_BASE_PATH`      | Optional deployment subdirectory, such as `/affiliatetemplate` for GitHub Pages; leave empty at a domain root. Set before building.                                      |
 | `NEXT_PUBLIC_PUBLISHER_NAME` | The actual person or business publishing the website.                                                                                                                    |
 | `NEXT_PUBLIC_CONTACT_EMAIL`  | A real contact address shown on information pages.                                                                                                                       |
 | `PARTNER_ADS_PARTNER_ID`     | Your affiliate ID; required when constructing tracking links from direct product URLs.                                                                                   |

@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Affiliate template design guide",
+  "description": "Build-time design settings. Dimensions are pixels; letter spacing is em. Colors use six-digit hex. Font families must already exist on the device or be supplied through your own CSS.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "name",
+    "mode",
+    "colors",
+    "typography",
+    "radius",
+    "shadows",
+    "layout"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "version": {
+      "type": "integer",
+      "enum": [1]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["light", "dark", "system"]
+    },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["light", "dark"],
+      "properties": {
+        "light": {
+          "$ref": "#/$defs/palette"
+        },
+        "dark": {
+          "$ref": "#/$defs/palette"
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "headingFont",
+        "bodyFont",
+        "monoFont",
+        "baseSize",
+        "scale",
+        "headingWeight",
+        "bodyWeight",
+        "strongWeight",
+        "headingLineHeight",
+        "bodyLineHeight",
+        "headingLetterSpacing",
+        "bodyLetterSpacing"
+      ],
+      "properties": {
+        "headingFont": {
+          "$ref": "#/$defs/font"
+        },
+        "bodyFont": {
+          "$ref": "#/$defs/font"
+        },
+        "monoFont": {
+          "$ref": "#/$defs/font"
+        },
+        "baseSize": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 22,
+          "description": "Base text size in pixels. All storefront type sizes scale proportionally."
+        },
+        "scale": {
+          "type": "number",
+          "minimum": 0.8,
+          "maximum": 1.25,
+          "description": "Additional multiplier applied to storefront text sizes."
+        },
+        "headingWeight": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 900,
+          "description": "Heading weight; available weights depend on the font."
+        },
+        "bodyWeight": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 900,
+          "description": "Body weight."
+        },
+        "strongWeight": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 900,
+          "description": "Emphasis and button weight."
+        },
+        "headingLineHeight": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1.7,
+          "description": "Heading line height as a multiplier."
+        },
+        "bodyLineHeight": {
+          "type": "number",
+          "minimum": 1.25,
+          "maximum": 2.2,
+          "description": "Body line height as a multiplier."
+        },
+        "headingLetterSpacing": {
+          "type": "number",
+          "minimum": -0.1,
+          "maximum": 0.2,
+          "description": "Heading tracking in em."
+        },
+        "bodyLetterSpacing": {
+          "type": "number",
+          "minimum": -0.05,
+          "maximum": 0.1,
+          "description": "Body tracking in em."
+        }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["card", "button", "input"],
+      "properties": {
+        "card": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "description": "Card and media corner radius in pixels."
+        },
+        "button": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Button corner radius in pixels; 1000 makes pill buttons."
+        },
+        "input": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "description": "Form control corner radius in pixels."
+        }
+      }
+    },
+    "shadows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["card", "floating"],
+      "properties": {
+        "card": {
+          "$ref": "#/$defs/shadow"
+        },
+        "floating": {
+          "$ref": "#/$defs/shadow"
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentWidth", "sectionSpacing", "gap", "density"],
+      "properties": {
+        "contentWidth": {
+          "type": "number",
+          "minimum": 960,
+          "maximum": 1800,
+          "description": "Maximum content width in pixels; layouts remain responsive."
+        },
+        "sectionSpacing": {
+          "type": "number",
+          "minimum": 24,
+          "maximum": 128,
+          "description": "Vertical section padding in pixels."
+        },
+        "gap": {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 48,
+          "description": "Base grid gap in pixels."
+        },
+        "density": {
+          "type": "number",
+          "minimum": 0.75,
+          "maximum": 1.4,
+          "description": "Multiplier for section, control, card and grid spacing."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "Six-digit hexadecimal color, for example #28513e."
+    },
+    "font": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z][A-Za-z0-9 -]*\"|'[A-Za-z][A-Za-z0-9 -]*')(?: *, *(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z][A-Za-z0-9 -]*\"|'[A-Za-z][A-Za-z0-9 -]*'))*$",
+      "description": "Comma-separated system/local font stack. Quote multiword font names when needed."
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "background",
+        "foreground",
+        "card",
+        "primary",
+        "primaryForeground",
+        "secondary",
+        "secondaryForeground",
+        "muted",
+        "mutedForeground",
+        "accent",
+        "accentForeground",
+        "border",
+        "input",
+        "ring",
+        "success",
+        "warning",
+        "destructive",
+        "imageBackground",
+        "overlayForeground"
+      ],
+      "properties": {
+        "background": {
+          "$ref": "#/$defs/color"
+        },
+        "foreground": {
+          "$ref": "#/$defs/color"
+        },
+        "card": {
+          "$ref": "#/$defs/color"
+        },
+        "primary": {
+          "$ref": "#/$defs/color"
+        },
+        "primaryForeground": {
+          "$ref": "#/$defs/color"
+        },
+        "secondary": {
+          "$ref": "#/$defs/color"
+        },
+        "secondaryForeground": {
+          "$ref": "#/$defs/color"
+        },
+        "muted": {
+          "$ref": "#/$defs/color"
+        },
+        "mutedForeground": {
+          "$ref": "#/$defs/color"
+        },
+        "accent": {
+          "$ref": "#/$defs/color"
+        },
+        "accentForeground": {
+          "$ref": "#/$defs/color"
+        },
+        "border": {
+          "$ref": "#/$defs/color"
+        },
+        "input": {
+          "$ref": "#/$defs/color"
+        },
+        "ring": {
+          "$ref": "#/$defs/color"
+        },
+        "success": {
+          "$ref": "#/$defs/color"
+        },
+        "warning": {
+          "$ref": "#/$defs/color"
+        },
+        "destructive": {
+          "$ref": "#/$defs/color"
+        },
+        "imageBackground": {
+          "$ref": "#/$defs/color"
+        },
+        "overlayForeground": {
+          "$ref": "#/$defs/color"
+        }
+      },
+      "description": "Semantic colors. Check foreground/background contrast when changing a pair."
+    },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "blur", "spread", "opacity", "color"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Horizontal offset in pixels."
+        },
+        "y": {
+          "type": "number",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Vertical offset in pixels."
+        },
+        "blur": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Blur radius in pixels."
+        },
+        "spread": {
+          "type": "number",
+          "minimum": -40,
+          "maximum": 40,
+          "description": "Spread in pixels."
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Shadow opacity; zero disables the shadow."
+        },
+        "color": {
+          "$ref": "#/$defs/color"
+        }
+      }
+    }
+  }
+}

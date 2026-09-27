@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import { site } from '@/config/site'
 import { getGuide, getGuides } from '@/lib/guides'
+import { withBasePath } from '@/lib/paths'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -68,7 +69,7 @@ export default async function GuidePage({ params }: Props) {
       </header>
       <Image
         className="article-image"
-        src={guide.image}
+        src={withBasePath(guide.image)}
         alt=""
         width={1200}
         height={800}
@@ -130,7 +131,12 @@ export default async function GuidePage({ params }: Props) {
               key={other.slug}
               className="guide-card"
             >
-              <Image src={other.image} alt="" width={1200} height={800} />
+              <Image
+                src={withBasePath(other.image)}
+                alt=""
+                width={1200}
+                height={800}
+              />
               <div className="guide-card-content">
                 <span className="eyebrow">{other.category}</span>
                 <h3>{other.title}</h3>
