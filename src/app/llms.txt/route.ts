@@ -6,7 +6,11 @@ import { buildLlmsText } from '@/lib/crawlers'
 export const dynamic = 'force-static'
 
 export function GET() {
-  if (!site.llmsTxt || !process.env.PARTNER_ADS_FEEDS?.trim()) {
+  if (
+    site.showcase ||
+    !site.llmsTxt ||
+    !process.env.PARTNER_ADS_FEEDS?.trim()
+  ) {
     return new Response('Not found\n', { status: 404 })
   }
   return new Response(

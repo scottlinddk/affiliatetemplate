@@ -1,4 +1,5 @@
 import 'server-only'
+import { readFile } from 'node:fs/promises'
 import { unstable_cache } from 'next/cache'
 import demoProducts from '../data/products.json'
 import {
@@ -9,6 +10,23 @@ import {
 } from './feed'
 import { fetchPartnerAdsFeed } from './feed-client'
 import type { Catalog, Product } from './types'
+
+let staticCatalog: Promise<Catalog> | undefined
+
+function readStaticCatalog(filename: string): Promise<Catalog> {
+  staticCatalog ??= readFile(filename, 'utf8').then((text) => {
+    const catalog = JSON.parse(text) as Catalog
+    if (
+      catalog.mode !== 'live' ||
+      !Array.isArray(catalog.products) ||
+      !catalog.products.length ||
+      !Array.isArray(catalog.warnings)
+    )
+      throw new Error('The static catalog snapshot is invalid.')
+    return catalog
+  })
+  return staticCatalog
+}
 
 const demoCatalog: Product[] = demoProducts.map((product) => ({
   ...product,
@@ -58,6 +76,11 @@ const getLiveCatalog = unstable_cache(
 )
 
 export async function getCatalog(): Promise<Catalog> {
+  // The export command validates and freezes the feed before starting Next's
+  // workers, preventing separate routes from publishing different API snapshots.
+  const snapshot =
+    process.env.STATIC_EXPORT === 'true' && process.env.STATIC_CATALOG_SNAPSHOT
+  if (snapshot) return readStaticCatalog(snapshot)
   const rawConfig = process.env.PARTNER_ADS_FEEDS
   if (rawConfig === undefined || rawConfig.trim() === '') {
     return { products: demoCatalog, mode: 'demo', warnings: [] }

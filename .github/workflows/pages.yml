@@ -1,9 +1,11 @@
-name: Deploy demo to GitHub Pages
+name: Deploy template to GitHub Pages
 
 on:
   push:
     branches: [master]
   workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * *'
 
 permissions:
   contents: read
@@ -19,11 +21,6 @@ jobs:
     permissions:
       contents: read
       pages: read
-    env:
-      # This public example always uses the bundled fictional catalog.
-      PARTNER_ADS_FEEDS: ''
-      PARTNER_ADS_PARTNER_ID: ''
-      PARTNER_ADS_API_URL: ''
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
@@ -35,11 +32,21 @@ jobs:
         uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm run check
-      - name: Export and verify the demo
+        env:
+          # Tests use deterministic fixtures; production data is read only below.
+          PARTNER_ADS_FEEDS: ''
+          PARTNER_ADS_PARTNER_ID: ''
+          PARTNER_ADS_API_URL: ''
+      - name: Export and verify the template
         run: npm run generate
         env:
           NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.origin }}
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_TEMPLATE_SHOWCASE: 'true'
+          NEXT_PUBLIC_PUBLISHER_NAME: Velvalgt (skabeloneksempel)
+          PARTNER_ADS_API_URL: ${{ vars.PARTNER_ADS_API_URL || 'https://partner-ads-json-feed.vercel.app' }}
+          PARTNER_ADS_FEEDS: ${{ secrets.PARTNER_ADS_FEEDS }}
+          PARTNER_ADS_PARTNER_ID: ${{ secrets.PARTNER_ADS_PARTNER_ID }}
       - uses: actions/upload-pages-artifact@v4
         with:
           path: out
@@ -55,6 +62,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Publish demo
+      - name: Publish template
         id: deployment
         uses: actions/deploy-pages@v5

@@ -4,7 +4,9 @@ A Danish affiliate website built with **React, Next.js App Router and TypeScript
 
 The included brand, **Velvalgt**, is a starting point: replace the identity, editorial content and demo data with your own before launching.
 
-**[Open the live GitHub Pages demo](https://scottlinddk.github.io/affiliatetemplate/)** · **[Try the design playground](https://scottlinddk.github.io/affiliatetemplate/design/)**
+**[Open the GitHub Pages example with real products](https://scottlinddk.github.io/affiliatetemplate/)** · **[Try the design playground](https://scottlinddk.github.io/affiliatetemplate/design/)**
+
+The published example imports Dansk Restlager products through the deployed JSON feed API. A fresh clone still uses the fictional catalog until you configure an approved feed.
 
 ## Make the design your own
 
@@ -15,7 +17,7 @@ Edit **[`src/config/design.json`](src/config/design.json)** to set the design gu
 - Card, button and input corners; card and floating-panel shadows.
 - Content width, section spacing, grid gaps and density.
 
-Choose from ten presets, including Midnight Tech, Atelier Luxe, Cherry Pop and Field Notes, or open `/design` to experiment visually, randomize colors and fonts, select Google Fonts, import a JSON theme and download your changes. The randomizer creates fresh light/dark palettes and font combinations with a one-step undo. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
+Choose from ten presets, including Midnight Tech, Atelier Luxe, Cherry Pop and Field Notes, or open `/design` to experiment visually, randomize colors and fonts, select Google Fonts, import a JSON theme and download your changes. The randomizer creates fresh light/dark palettes and font combinations with a one-step undo. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. Demo and template-showcase footers link to the playground, including showcases with real products.
 
 Read [the design guide](docs/design-guide.md) for every setting, font setup and preset examples. See [GitHub Pages deployment](docs/github-pages.md) to publish a copy under your own account.
 
@@ -53,19 +55,20 @@ This is a storefront and publishing template. It does not include a checkout, or
 
 ## Configure your site
 
-| Setting                      | Purpose                                                                                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL`       | Your public HTTPS origin; used for canonical URLs and search metadata.                                                                                                   |
-| `NEXT_PUBLIC_BASE_PATH`      | Optional deployment subdirectory, such as `/affiliatetemplate` for GitHub Pages; leave empty at a domain root. Set before building.                                      |
-| `NEXT_PUBLIC_PUBLISHER_NAME` | The actual person or business publishing the website.                                                                                                                    |
-| `NEXT_PUBLIC_CONTACT_EMAIL`  | A real contact address shown on information pages.                                                                                                                       |
-| `PARTNER_ADS_PARTNER_ID`     | Your affiliate ID; required when constructing tracking links from direct product URLs.                                                                                   |
-| `PARTNER_ADS_API_URL`        | Server-only base URL of your separately running JSON feed API, e.g. `http://localhost:1337`. Required for live feeds.                                                    |
-| `PARTNER_ADS_FEEDS`          | Server-only JSON array of approved extracts with `rid`, `programId`, `merchant`, `approved: true`, `currency: "DKK"` and optional `bannerId`. Leave unset for demo mode. |
+| Setting                         | Purpose                                                                                                                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`          | Your public HTTPS origin; used for canonical URLs and search metadata.                                                                                                          |
+| `NEXT_PUBLIC_BASE_PATH`         | Optional deployment subdirectory, such as `/affiliatetemplate` for GitHub Pages; leave empty at a domain root. Set before building.                                             |
+| `NEXT_PUBLIC_TEMPLATE_SHOWCASE` | Set `true` for a public template example: retain the design playground link and block search indexing even with real feeds. Default `false`; separate from fictional demo mode. |
+| `NEXT_PUBLIC_PUBLISHER_NAME`    | The actual person or business publishing the website.                                                                                                                           |
+| `NEXT_PUBLIC_CONTACT_EMAIL`     | A real contact address shown on information pages.                                                                                                                              |
+| `PARTNER_ADS_PARTNER_ID`        | Your affiliate ID; required when constructing tracking links from direct product URLs.                                                                                          |
+| `PARTNER_ADS_API_URL`           | Server-only base URL of your separately running JSON feed API, e.g. `http://localhost:1337`. Required for live feeds.                                                           |
+| `PARTNER_ADS_FEEDS`             | Server-only JSON array of approved extracts with `rid`, `merchant`, `approved: true`, `currency: "DKK"` and optional `programId`/`bannerId`. Leave unset for demo mode.         |
 
 Edit the brand name, description, language and other site defaults in `src/config/site.ts`. Details and an example feed configuration are in [Partner-ads setup](docs/partner-ads.md).
 
-Live data requires a separate deployment of [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed). This template calls its paginated `GET /api/feed/:rid` endpoint from the server; the service downloads and parses Partner-ads XML. Each configured extract must contain products from one approved advertiser in DKK. The extract `rid` is separate from partner, program and banner IDs. The API does not discover advertiser programs or replace account approval.
+Live data requires a separate deployment of [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed), such as the deployed service at `https://partner-ads-json-feed.vercel.app`. This template calls its paginated `GET /api/feed/:rid` endpoint from the server; the service downloads and parses Partner-ads XML. Each configured extract must contain products from one approved advertiser in DKK. The extract `rid` is separate from partner, program and banner IDs. Existing valid affiliate links are preserved; no program or banner ID is invented. Without a known `programId`, source-product identities use the extract's `feed:<rid>` namespace. The API does not discover advertiser programs or replace account approval; `/api/feeds` lists only a temporary cache inventory, and a `404` at the service root is expected.
 
 If upgrading from direct XML feeds, replace each `url` entry with its feed-extract `rid`, explicitly add `currency: "DKK"`, set `PARTNER_ADS_API_URL`, and rebuild. Full merchant-feed URLs cannot be substituted for an extract ID. See the [migration and local setup instructions](docs/partner-ads.md#local-development-with-live-data).
 
@@ -90,7 +93,7 @@ Browser tests start their own server on port 3100. Set `PLAYWRIGHT_PORT` to use 
 ## Content and data
 
 - `src/data/products.json`: illustrative demo products. Demo merchant links are disabled.
-- `src/data/deals.json`: editorial offers, codes, validity dates and terms. Keep example offers labelled as demo.
+- `src/data/deals.json`: editorial offers, codes, validity dates and terms. Keep example offers labelled as demo; those examples are hidden when live feeds are configured.
 - `src/data/banners.json`: optional approved advertiser creative; empty by default.
 - `content/guides/*.md`: guides, reviews, comparisons and posts with validated frontmatter; no CMS required.
 - `src/data/programs.json`: approved CTA programs for editorial Markdown, empty by default.
@@ -105,7 +108,9 @@ For a Node-compatible host, run `npm ci`, `npm run check`, `npm run check:config
 
 The server caches the processed catalog for one hour, preserving the API's `meta.cachedAt` as each offer's update time. This is the time the service downloaded the source, not proof of when an advertiser changed a price. The API has its own cache (one hour by default); reading cached API data does not reset its timestamp. Next.js revalidation is request-driven; it is not a background scheduler. New product routes and changed guide content should be picked up with a fresh deployment.
 
-For static hosting, run `npm run generate` and publish **`out/`**, with directory-index support. There is no server-side revalidation in an exported site. Schedule a fresh build and deploy at least daily, check its success, and rebuild immediately after content or feed changes. A normal server build is the better fit for a catalog that changes often.
+For static hosting, run `npm run generate` and publish **`out/`**, with directory-index support. The export fetches each configured feed once, including all pages, in `prepare-catalog`, then uses one temporary catalog snapshot for every generated route. A failed, empty, wholly invalid or stale feed aborts the export so the Pages workflow retains the last successful deployment. A valid fresh feed with only out-of-stock products still publishes their unavailable status. There is no server-side revalidation in an exported site.
+
+The included Pages workflow rebuilds on pushes, manual runs and daily at **02:17 UTC**. Configure its feed secrets and API repository variable as described in [GitHub Pages deployment](docs/github-pages.md), monitor successful refreshes, and rebuild immediately after content or feed changes. A normal server build is the better fit for a catalog that changes often.
 
 Partner-ads' feed guide calls for prices to be refreshed at least weekly. The template excludes offers older than seven days from current price selection. Static HTML, search-engine caches and an already-open browser tab can still lag behind: a regular successful rebuild remains necessary. The merchant always confirms the final price, stock and delivery charge.
 

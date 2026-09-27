@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { site } from '@/config/site'
+import { getCatalog } from '@/lib/catalog'
 
 export const metadata: Metadata = {
   title: 'Om os & reklamelinks',
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/om' },
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { mode } = await getCatalog()
   return (
     <div className="container article">
       <header className="page-heading">
@@ -63,12 +65,18 @@ export default function AboutPage() {
           forhandleren. En rabatkode kan have betingelser og en udløbsdato;
           kontrollér, at rabatten er lagt til i forhandlerens checkout.
         </p>
-        <h2>En skabelon, du kan gøre til din egen</h2>
-        <p>
-          Dette website er bygget på en affiliate-skabelon. Når demotilstand
-          vises, er produkter, priser, butikker og tilbud eksempler. Demoen
-          dokumenterer funktionerne og indeholder ikke verificerede købstilbud.
-        </p>
+        {(mode === 'demo' || site.showcase) && (
+          <>
+            <h2>En skabelon, du kan gøre til din egen</h2>
+            <p>
+              {mode === 'demo'
+                ? 'Dette website demonstrerer en affiliate-skabelon med fiktive produkter, priser, butikker og tilbud. Eksemplerne dokumenterer funktionerne og er ikke verificerede købstilbud.'
+                : 'Dette website viser en affiliate-skabelon med rigtige produkter og forhandlerpriser. Produktdata og reklamelinks hentes fra de tilknyttede forhandleres feeds via Partner-ads.'}{' '}
+              I <Link href="/design">designværkstedet</Link> kan du afprøve
+              skabelonens farver, skrifttyper og færdige design.
+            </p>
+          </>
+        )}
         <h2>Kontakt og udgiver</h2>
         <p>Udgiver: {site.publisher}.</p>
         {site.contactEmail ? (
@@ -78,8 +86,8 @@ export default function AboutPage() {
           </p>
         ) : (
           <p>
-            Kontaktoplysninger er endnu ikke tilføjet til denne demo. Ejeren
-            skal tilføje udgiver og kontaktoplysninger, før siden lanceres.
+            Der er endnu ikke oplyst en kontaktadresse på siden. Spørgsmål om
+            køb, levering og reklamation skal rettes til forhandleren.
           </p>
         )}
         <p>

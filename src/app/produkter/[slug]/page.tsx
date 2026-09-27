@@ -115,17 +115,19 @@ export default async function ProductPage({
         {site.priceDisclaimer} Priser, der er ældre end syv dage, skjules.
       </p>
       <BannerPlacement placement="product" />
-      <section className="spec-section">
-        <h2>Det praktiske overblik</h2>
-        <dl className="spec-grid">
-          {Object.entries(product.specs).map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+      {Object.keys(product.specs).length > 0 && (
+        <section className="spec-section">
+          <h2>Det praktiske overblik</h2>
+          <dl className="spec-grid">
+            {Object.entries(product.specs).map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
       {related.length > 0 && (
         <section className="section">
           <div className="section-heading">

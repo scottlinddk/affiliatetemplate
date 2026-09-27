@@ -1,5 +1,5 @@
 'use client'
-import { useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import type { Product } from '@/lib/types'
 import { lowestPriceOffer } from '@/lib/affiliate'
@@ -16,6 +16,37 @@ function browserQuery() {
 }
 function serverQuery() {
   return ''
+}
+
+const PAGE_SIZE = 24
+
+function CatalogProducts({ products }: { products: Product[] }) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const shown = Math.min(visibleCount, products.length)
+  return (
+    <>
+      <div className="product-grid">
+        {products.slice(0, shown).map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      {products.length > PAGE_SIZE && (
+        <div className="catalog-pagination">
+          <p role="status">
+            Viser {shown} af {products.length} produkter
+          </p>
+          {shown < products.length && (
+            <button
+              className="button button-secondary"
+              onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            >
+              Vis flere produkter
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  )
 }
 
 export function Catalog({
@@ -42,6 +73,19 @@ export function Catalog({
   const inStock = params.get('stock') === '1'
   const savedOnly = params.get('saved') === '1'
   const { state, update } = usePreferences()
+  // Reset the visible batch when the result criteria change, including history
+  // navigation. Saving or comparing a card otherwise leaves its batch visible.
+  const resultKey = JSON.stringify([
+    search,
+    category,
+    brand,
+    merchant,
+    sort,
+    maxPrice,
+    inStock,
+    savedOnly,
+    savedOnly ? state.saved : null,
+  ])
   const price = (p: Product) => lowestPriceOffer(p)?.price ?? Infinity
   const categories = [...new Set(products.map((p) => p.category))].sort()
   const brands = [...new Set(products.map((p) => p.brand))].sort()
@@ -219,11 +263,7 @@ export function Catalog({
             </label>
           </div>
           {filtered.length ? (
-            <div className="product-grid">
-              {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+            <CatalogProducts key={resultKey} products={filtered} />
           ) : (
             <div className="empty-state">
               <Icon name="search" size={32} />

@@ -11,6 +11,17 @@ export const revalidate = 3600
 export const metadata = { alternates: { canonical: '/' } }
 export default async function Home() {
   const catalog = await getCatalog()
+  const merchants = [
+    ...new Set(
+      catalog.products.flatMap((product) =>
+        product.offers.map((offer) => offer.merchant),
+      ),
+    ),
+  ]
+  const merchantSummary =
+    merchants.length === 1
+      ? `Produkter fra ${merchants[0]}`
+      : `Priser fra ${merchants.length.toLocaleString('da-DK')} forhandlere`
   const guides = getGuides()
     .filter((article) => article.type === 'guide')
     .slice(0, 3)
@@ -30,9 +41,19 @@ export default async function Home() {
             hverdagen <em>bedre.</em>
           </h1>
           <p className="hero-description">
-            Fra den første kop kaffe til det sidste læselys.
-            <br className="desktop-break" /> Find inspiration, sammenlign
-            priser, og vælg med ro i maven.
+            {catalog.mode === 'demo' ? (
+              <>
+                Fra den første kop kaffe til det sidste læselys.
+                <br className="desktop-break" /> Find inspiration, sammenlign
+                priser, og vælg med ro i maven.
+              </>
+            ) : (
+              <>
+                Find produkter til dit hjem og din hverdag.
+                <br className="desktop-break" /> Se forhandlernes priser,
+                udforsk dine muligheder, og vælg med ro i maven.
+              </>
+            )}
           </p>
           <div className="hero-buttons">
             <Link href="/produkter" className="button">
@@ -45,11 +66,17 @@ export default async function Home() {
           <div className="hero-points">
             <span>
               <Icon name="check" size={16} />
-              Priser på tværs af butikker
+              {catalog.mode === 'demo'
+                ? 'Priser på tværs af butikker'
+                : merchants.length
+                  ? merchantSummary
+                  : 'Produkter fra tilknyttede forhandlere'}
             </span>
             <span>
               <Icon name="check" size={16} />
-              Plads til at vælge rigtigt
+              {catalog.mode === 'demo'
+                ? 'Plads til at vælge rigtigt'
+                : `${catalog.products.length.toLocaleString('da-DK')} produkter at udforske`}
             </span>
           </div>
         </div>
