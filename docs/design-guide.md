@@ -25,6 +25,14 @@ Ten starting points are included in `src/config/themes/`:
 
 Each has light and dark palettes. Presets are independent starting points; edits to the active `design.json` do not modify the other presets.
 
+### Try a random starting point
+
+Use **Tilfældige farver & skrifter** in the playground to generate a fresh color palette and font combination. Each click creates coordinated light and dark colors and selects heading, body and monospace fonts from local fonts and the curated Google Fonts catalog. It generates new palettes instead of selecting one of the presets.
+
+Your appearance mode, layout, corners, shadows and typography sizes stay as configured; font weights adjust when the new family needs a supported weight. The generator checks text contrast on the main generated surfaces. Images retain their original colors, so review the complete design with your own content before publishing.
+
+Keep clicking to explore, or use **Fortryd randomisering** to return to the design before the latest click. A subsequent edit, import or preset selection clears this one-step undo. Refine any generated result with the normal controls and download it as `design.json`; no additional configuration format is needed.
+
 ## Configuration reference
 
 `$schema` points your editor to `./design.schema.json` for autocomplete. Keep `version` set to `1`. `name` labels your theme, while the public website name remains in `src/config/site.ts`.
