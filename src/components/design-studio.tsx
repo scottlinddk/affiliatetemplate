@@ -10,6 +10,7 @@ import {
   type ThemePalette,
 } from '@/lib/theme'
 import type { Product } from '@/lib/types'
+import { randomizeTheme } from '@/lib/theme-randomizer'
 import {
   firstFontFamily,
   googleFontCatalog,
@@ -282,6 +283,11 @@ export function DesignStudio({ products }: { products: Product[] }) {
   )
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [randomizationUndo, setRandomizationUndo] = useState<{
+    theme: ThemeConfig
+    preset: string
+    palette: 'light' | 'dark'
+  } | null>(null)
   const headingGoogleFont = theme.typography.googleFonts?.find(
     (font) =>
       font.family.toLowerCase() ===
@@ -296,6 +302,21 @@ export function DesignStudio({ products }: { products: Product[] }) {
     if (valid.mode !== 'system') setPalette(valid.mode)
     setError('')
     setNotice('')
+    setRandomizationUndo(null)
+  }
+
+  function randomize() {
+    const previous = { theme, preset: selectedPreset, palette }
+    apply(randomizeTheme(theme))
+    setRandomizationUndo(previous)
+    setNotice('Nye farver og skrifter er klar. Tilpas dem, eller prøv igen.')
+  }
+
+  function undoRandomization() {
+    if (!randomizationUndo) return
+    apply(randomizationUndo.theme, randomizationUndo.preset)
+    setPalette(randomizationUndo.palette)
+    setNotice('Dit design fra før den seneste randomisering er gendannet.')
   }
 
   function typography(
@@ -383,6 +404,7 @@ export function DesignStudio({ products }: { products: Product[] }) {
   }
 
   function importJson(text: string) {
+    setRandomizationUndo(null)
     try {
       apply(validateTheme(JSON.parse(text)))
       setNotice('Designet er indlæst i forhåndsvisningen.')
@@ -398,6 +420,7 @@ export function DesignStudio({ products }: { products: Product[] }) {
 
   async function importFile(file: File | undefined) {
     if (!file) return
+    setRandomizationUndo(null)
     if (file.size > 100_000) {
       setError('Designfilen er for stor. Vælg en JSON-fil på højst 100 KB.')
       return
@@ -463,6 +486,40 @@ export function DesignStudio({ products }: { products: Product[] }) {
             aria-labelledby="studio-presets"
           >
             <h3 id="studio-presets">01 / Vælg en stemning</h3>
+            <div className="studio-randomize">
+              <button
+                className="studio-button studio-button-primary"
+                aria-describedby="studio-randomize-hint"
+                onClick={randomize}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m17 3 4 4-4 4M3 17h3c5 0 5-10 10-10h5M17 13l4 4-4 4M3 7h3c1.5 0 2.6.9 3.5 2.2M14.5 14.8c.9 1.3 2 2.2 3.5 2.2h3" />
+                </svg>
+                Tilfældige farver &amp; skrifter
+              </button>
+              <p className="studio-hint" id="studio-randomize-hint">
+                Få et frit udgangspunkt med nye farver og skrifter. Prøv igen,
+                til noget føles rigtigt.
+              </p>
+              {randomizationUndo && (
+                <button
+                  className="studio-randomize-undo"
+                  onClick={undoRandomization}
+                >
+                  Fortryd randomisering
+                </button>
+              )}
+            </div>
             <p className="studio-preset-current">
               {presets.length} design ·{' '}
               {selectedPreset === 'custom' ? 'Tilpasset: ' : 'Aktuelt: '}
@@ -943,6 +1000,7 @@ export function DesignStudio({ products }: { products: Product[] }) {
                   setDraft(event.target.value)
                   setError('')
                   setNotice('')
+                  setRandomizationUndo(null)
                 }}
               />
               <div className="studio-json-actions">

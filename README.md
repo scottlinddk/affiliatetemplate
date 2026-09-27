@@ -15,7 +15,7 @@ Edit **[`src/config/design.json`](src/config/design.json)** to set the design gu
 - Card, button and input corners; card and floating-panel shadows.
 - Content width, section spacing, grid gaps and density.
 
-Choose from ten presets, including Midnight Tech, Atelier Luxe, Cherry Pop and Field Notes, or open `/design` to experiment visually, select Google Fonts, import a JSON theme and download your changes. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
+Choose from ten presets, including Midnight Tech, Atelier Luxe, Cherry Pop and Field Notes, or open `/design` to experiment visually, randomize colors and fonts, select Google Fonts, import a JSON theme and download your changes. The randomizer creates fresh light/dark palettes and font combinations with a one-step undo. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
 
 Read [the design guide](docs/design-guide.md) for every setting, font setup and preset examples. See [GitHub Pages deployment](docs/github-pages.md) to publish a copy under your own account.
 

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import type { ThemeConfig } from '../../src/lib/theme'
 
 test.beforeEach(async ({ page }) => {
   // The suite must work offline. Real font delivery is a separate smoke check.
@@ -17,6 +18,190 @@ async function openDesign(page: Page) {
     .getByRole('button', { name: 'Kun nødvendige', exact: true })
     .click()
 }
+
+async function readDesign(page: Page): Promise<ThemeConfig> {
+  return JSON.parse(
+    await page.getByLabel('Design som JSON', { exact: true }).inputValue(),
+  )
+}
+
+test('randomization changes colors and fonts only in the preview and exports an undoable design', async ({
+  page,
+}) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await openDesign(page)
+  const preset = page.getByRole('button', { name: /Midnight tech/ })
+  await preset.click()
+  const original = await readDesign(page)
+  const siteStyle = await page.locator('body').evaluate((node) => {
+    const style = getComputedStyle(node)
+    return { background: style.backgroundColor, font: style.fontFamily }
+  })
+  const shuffle = page.getByRole('button', {
+    name: 'Tilfældige farver & skrifter',
+    exact: true,
+  })
+  const undo = page.getByRole('button', {
+    name: 'Fortryd randomisering',
+    exact: true,
+  })
+  await expect(undo).toHaveCount(0)
+  await shuffle.focus()
+  await page.keyboard.press('Space')
+  const randomized = await readDesign(page)
+  expect(randomized.colors.light).not.toEqual(original.colors.light)
+  expect(randomized.colors.dark).not.toEqual(original.colors.dark)
+  expect(randomized.typography.headingFont).not.toBe(
+    original.typography.headingFont,
+  )
+  expect(randomized.typography.bodyFont).not.toBe(original.typography.bodyFont)
+  expect(randomized.mode).toBe(original.mode)
+  expect(randomized.layout).toEqual(original.layout)
+  expect(randomized.radius).toEqual(original.radius)
+  expect(randomized.shadows).toEqual(original.shadows)
+  await expect(page.locator('.studio-preset[aria-pressed="true"]')).toHaveCount(
+    0,
+  )
+  await expect(page.locator('.studio-preset-current')).toContainText(
+    'Tilpasset:',
+  )
+  await expect(page.locator('.studio-notice')).toContainText(
+    'Nye farver og skrifter er klar',
+  )
+  await expect(page.locator('#design-preview')).toHaveCSS(
+    'color-scheme',
+    'dark',
+  )
+  const previewStyle = await page
+    .locator('#design-preview')
+    .evaluate((node) => {
+      const style = getComputedStyle(node)
+      return {
+        primary: style.getPropertyValue('--color-primary').trim(),
+        heading: style.getPropertyValue('--font-heading').trim(),
+      }
+    })
+  expect(previewStyle.primary).toBe(randomized.colors.dark.primary)
+  expect(previewStyle.heading).toBe(randomized.typography.headingFont)
+  expect(
+    await page.locator('body').evaluate((node) => {
+      const style = getComputedStyle(node)
+      return { background: style.backgroundColor, font: style.fontFamily }
+    }),
+  ).toEqual(siteStyle)
+  await expect(page.locator('link[data-theme-font="preview"]')).toHaveCount(
+    randomized.typography.googleFonts?.length ?? 0,
+  )
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    ),
+  ).toBe(false)
+
+  const downloaded = page.waitForEvent('download')
+  await page
+    .getByRole('button', { name: 'Hent design.json', exact: true })
+    .first()
+    .click()
+  const download = await downloaded
+  expect(download.suggestedFilename()).toBe('design.json')
+  const stream = await download.createReadStream()
+  expect(stream).not.toBeNull()
+  let contents = ''
+  for await (const chunk of stream!) contents += chunk.toString()
+  expect(JSON.parse(contents)).toEqual(randomized)
+  await undo.click()
+  expect(await readDesign(page)).toEqual(original)
+  await expect(preset).toHaveAttribute('aria-pressed', 'true')
+  await expect(undo).toHaveCount(0)
+  expect(errors).toEqual([])
+})
+
+test('repeated randomization restores the previous result and clears undo after other edits', async ({
+  page,
+}) => {
+  await openDesign(page)
+  const shuffle = page.getByRole('button', {
+    name: 'Tilfældige farver & skrifter',
+    exact: true,
+  })
+  const undo = page.getByRole('button', {
+    name: 'Fortryd randomisering',
+    exact: true,
+  })
+  await page.getByRole('radio', { name: 'System', exact: true }).check()
+  await shuffle.click()
+  const first = await readDesign(page)
+  await shuffle.click()
+  const second = await readDesign(page)
+  expect(second.mode).toBe('system')
+  expect(second.colors).not.toEqual(first.colors)
+  expect(second.typography.headingFont).not.toBe(first.typography.headingFont)
+  expect(second.typography.bodyFont).not.toBe(first.typography.bodyFont)
+  await undo.click()
+  expect(await readDesign(page)).toEqual(first)
+  await expect(undo).toHaveCount(0)
+
+  await shuffle.click()
+  await page.getByLabel('Primær farve (lys)', { exact: true }).fill('#123456')
+  await expect(undo).toHaveCount(0)
+  expect((await readDesign(page)).colors.light.primary).toBe('#123456')
+  await shuffle.click()
+  await page.getByRole('button', { name: /Ocean minimal/ }).click()
+  await expect(undo).toHaveCount(0)
+  await shuffle.click()
+  await page
+    .getByRole('button', { name: 'Nulstil til sidens design', exact: true })
+    .click()
+  await expect(undo).toHaveCount(0)
+})
+
+test('JSON edits clear randomization undo and an invalid import preserves the generated preview', async ({
+  page,
+}) => {
+  await openDesign(page)
+  const shuffle = page.getByRole('button', {
+    name: 'Tilfældige farver & skrifter',
+    exact: true,
+  })
+  const undo = page.getByRole('button', {
+    name: 'Fortryd randomisering',
+    exact: true,
+  })
+  await shuffle.click()
+  const generated = await readDesign(page)
+  const preview = page.locator('#design-preview')
+  const color = await preview.evaluate(
+    (node) => getComputedStyle(node).backgroundColor,
+  )
+  await page.getByText('Rediger eller importér JSON', { exact: true }).click()
+  const source = page.getByLabel('Design som JSON', { exact: true })
+  await source.fill('{ broken')
+  await expect(undo).toHaveCount(0)
+  await page.getByRole('button', { name: 'Anvend JSON', exact: true }).click()
+  await expect(page.getByRole('main').getByRole('alert')).toContainText(
+    'Det senest gyldige design vises stadig',
+  )
+  await expect(preview).toHaveCSS('background-color', color)
+  await shuffle.click()
+  await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
+  await undo.click()
+  expect(await readDesign(page)).toEqual(generated)
+
+  await shuffle.click()
+  const imported = { ...generated, name: 'Mit importerede design' }
+  await page.getByLabel('Importér designfil', { exact: true }).setInputFiles({
+    name: 'design.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(imported)),
+  })
+  await expect(page.locator('.studio-notice')).toContainText(
+    'Designet er indlæst',
+  )
+  expect(await readDesign(page)).toEqual(imported)
+  await expect(undo).toHaveCount(0)
+})
 
 test('design controls update real storefront components only in the preview', async ({
   page,
