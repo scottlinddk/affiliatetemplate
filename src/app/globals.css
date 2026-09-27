@@ -368,11 +368,13 @@ svg {
 }
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: calc(var(--layout-gap) * 16 / 22 * var(--density));
 }
 .category-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(48px, 32%);
+  gap: calc(var(--layout-gap) * 8 / 22 * var(--density));
   min-height: 155px;
   background: var(--color-secondary);
   border: 1px solid var(--color-border);
@@ -395,15 +397,12 @@ svg {
   background: var(--color-secondary);
 }
 .category-card > div {
-  width: 66%;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
+  min-width: 0;
 }
 .category-card h3 {
   font-size: calc(14px * var(--type-scale));
   font-weight: var(--font-strong-weight);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .category-card p {
   font-size: calc(10px * var(--type-scale));
@@ -412,10 +411,10 @@ svg {
   max-width: 120px;
 }
 .category-card > img {
-  width: 130px;
+  width: 100%;
+  max-width: 130px;
   height: 138px;
   object-fit: contain;
-  margin: -5px 0 -10px -45px;
   align-self: end;
 }
 .round-link {
@@ -792,6 +791,19 @@ svg {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: calc(var(--layout-gap) * 38 / 22 * var(--density));
+}
+.catalog-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: calc(28px * var(--density));
+  text-align: center;
+  color: var(--color-muted-foreground);
+  font-size: calc(12px * var(--type-scale));
+}
+.catalog-pagination p {
+  margin: 0;
 }
 .filters {
   align-self: start;
@@ -1419,10 +1431,6 @@ input[type='radio'] {
     font-size: calc(9px * var(--type-scale));
     max-width: 95px;
   }
-  .category-card > img {
-    width: 110px;
-    margin-left: -45px;
-  }
   .catalog-layout {
     grid-template-columns: 195px minmax(0, 1fr);
     gap: calc(var(--layout-gap) * 24 / 22 * var(--density));
@@ -1606,6 +1614,7 @@ input[type='radio'] {
     gap: calc(var(--layout-gap) * 12 / 22 * var(--density));
   }
   .category-card {
+    grid-template-columns: minmax(0, 1fr);
     min-height: 137px;
     padding: calc(18px * var(--density)) calc(4px * var(--density))
       calc(9px * var(--density)) calc(13px * var(--density));
@@ -1614,9 +1623,9 @@ input[type='radio'] {
     font-size: calc(12px * var(--type-scale));
   }
   .category-card > img {
-    width: 110px;
-    height: 117px;
-    margin-left: -45px;
+    width: 90px;
+    height: 90px;
+    justify-self: end;
   }
   .category-card p {
     font-size: calc(9px * var(--type-scale));

@@ -57,6 +57,10 @@ test('feed config requires extract IDs, DKK and explicit advertiser approval', (
     { rid: '1'.repeat(101) },
     { programId: 123 },
     { programId: '0' },
+    { programId: '' },
+    { programId: null },
+    { programId: 'feed:123' },
+    { programId: '1'.repeat(21) },
     { currency: undefined },
     { currency: 'EUR' },
     { bannerId: 'program-123' },
@@ -92,6 +96,23 @@ test('feed config requires extract IDs, DKK and explicit advertiser approval', (
       ),
     /rid.*PARTNER_ADS_API_URL/,
   )
+})
+
+test('an approved feed may omit an unknown program ID without inventing one', () => {
+  const withoutProgram = {
+    rid: '7501',
+    merchant: 'Testforhandler',
+    approved: true,
+    currency: 'DKK',
+  }
+  const [parsed] = parseFeedConfig(JSON.stringify([withoutProgram]))
+  assert.deepEqual(parsed, withoutProgram)
+  assert.equal('programId' in parsed, false)
+  const offer = parsePartnerAdsFeed(rows(), parsed, options).products[0]
+    .offers[0]
+  assert.equal('programId' in offer, false)
+  assert.equal(offer.affiliateUrl, undefined)
+  assert.equal(offer.url, 'https://merchant.example/coffee?a=1&b=2')
 })
 
 test('service base supports localhost and path prefixes without credentials or query strings', () => {
@@ -150,6 +171,37 @@ test('a direct merchant URL remains direct without an actual banner ID', () => {
     '789',
   )
   assert.equal(new URL(result!.affiliateUrl!).searchParams.get('htmlurl'), url)
+})
+
+test('unknown program IDs do not change tracking requirements or attribution checks', () => {
+  const withoutProgram: FeedConfig = {
+    rid: '7501',
+    merchant: 'Testforhandler',
+    approved: true,
+    currency: 'DKK',
+  }
+  const url = 'https://merchant.example/product?a=1&b=2'
+  assert.deepEqual(resolveProductLinks(url, withoutProgram, '456'), { url })
+  const withBanner = { ...withoutProgram, bannerId: '789' }
+  assert.deepEqual(resolveProductLinks(url, withBanner), { url })
+  const linked = resolveProductLinks(url, withBanner, '456')!
+  assert.equal(
+    new URL(linked.affiliateUrl!).searchParams.get('bannerid'),
+    '789',
+  )
+  assert.equal(
+    new URL(linked.affiliateUrl!).searchParams.get('partnerid'),
+    '456',
+  )
+  assert.equal(new URL(linked.affiliateUrl!).searchParams.get('htmlurl'), url)
+  assert.deepEqual(
+    resolveProductLinks(linked.affiliateUrl, withoutProgram, '456'),
+    linked,
+  )
+  assert.equal(
+    resolveProductLinks(linked.affiliateUrl, withoutProgram, '999'),
+    undefined,
+  )
 })
 
 test('existing Partner-ads links preserve an unencoded destination query and validate attribution', () => {
@@ -422,6 +474,55 @@ test('product slugs survive product and merchant renames, URL changes, and merch
     mergeCatalogProducts([firstMerchant, otherMerchant])[0].slug,
     mergeCatalogProducts([otherMerchant])[0].slug,
   )
+})
+
+test('known programs retain existing identities and unknown programs use distinct feed namespaces', () => {
+  const known = parsePartnerAdsFeed(rows(), config, options).products[0]
+  assert.equal(known.slug, 'product-1dzg94fljavx9')
+  assert.equal(known.offers[0].id, 'offer-1dzg94fljavx9')
+  const sameProgram = parsePartnerAdsFeed(
+    rows(),
+    { ...config, rid: '9999' },
+    options,
+  ).products[0]
+  assert.equal(sameProgram.slug, known.slug)
+  assert.equal(sameProgram.offers[0].id, known.offers[0].id)
+
+  const withoutProgram: FeedConfig = {
+    rid: config.programId!,
+    merchant: config.merchant,
+    approved: true,
+    currency: 'DKK',
+  }
+  const unknown = parsePartnerAdsFeed(rows(), withoutProgram, options)
+    .products[0]
+  const otherFeed = parsePartnerAdsFeed(
+    rows(),
+    { ...withoutProgram, rid: '124' },
+    options,
+  ).products[0]
+  assert.equal(mergeCatalogProducts([known, unknown, otherFeed]).length, 3)
+  assert.equal(
+    new Set([known, unknown, otherFeed].map((item) => item.offers[0].id)).size,
+    3,
+  )
+  const renamed = parsePartnerAdsFeed(
+    rows({ name: 'Nyt navn', productUrl: 'https://merchant.example/renamed' }),
+    { ...withoutProgram, merchant: 'Nyt butiksnavn' },
+    options,
+  ).products[0]
+  assert.equal(renamed.slug, unknown.slug)
+  assert.equal(renamed.offers[0].id, unknown.offers[0].id)
+
+  const gtinProducts = [withoutProgram, { ...withoutProgram, rid: '124' }].map(
+    (feed) =>
+      parsePartnerAdsFeed(rows({ ean: '4006381333931' }), feed, options)
+        .products[0],
+  )
+  const merged = mergeCatalogProducts(gtinProducts)
+  assert.equal(merged.length, 1)
+  assert.equal(merged[0].offers.length, 2)
+  assert.equal(merged[0].slug, 'gtin-04006381333931')
 })
 
 test('a product requires either a valid GTIN or a nonempty source ID for a stable slug', () => {

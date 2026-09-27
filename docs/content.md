@@ -123,7 +123,7 @@ This is a non-working example. The registry `id` is your editorial key, not the 
 
 ### Stable product references
 
-Live product slugs now use `gtin-<14-digit validated GTIN>` or `product-<hash of program ID and source product ID>`. Merchant renaming and feed ordering do not change them. Rows lacking both a valid GTIN and a source ID are rejected. Demo slugs remain unchanged. Copy the current slug from the catalog; do not derive it from the product name.
+Live product slugs use `gtin-<14-digit validated GTIN>` or `product-<hash of identity namespace and source product ID>`. The namespace is the actual `programId` when configured, otherwise `feed:<rid>`. Merchant renaming and feed ordering do not change them. Rows lacking both a valid GTIN and a source ID are rejected. Demo slugs remain unchanged. Copy the current slug from the catalog; do not derive it from the product name. Adding a program ID later changes the identity of products that have no valid GTIN, so review references and redirects before that change.
 
 Before launch, replace old name-prefixed live URLs and references with these identifier slugs. If upgrading a published site, export its old URL-to-product mapping first and configure permanent redirects at the host before deploying. Historical merchant names cannot be reconstructed, so redirects are not inferred. Static exports require host-level redirects. A changed GTIN or merchant source ID is an identity change and needs editorial review.
 
@@ -148,7 +148,7 @@ Edit the array in `src/data/deals.json`. A deal has the following shape:
 
 This is a **non-working example**. Replace the details with an authorized, verified campaign and use `demo: false` only when it is real. `code` is optional for offers that need no code. `affiliateUrl` is optional and should contain the actual approved tracking URL for the direct `url` destination. A demo entry's outbound purchase action is disabled.
 
-Use complete timestamps with a time-zone offset. Start and end times are interpreted as specific instants. Expired or future real campaigns are omitted from the active listing; labelled demo cards stay visible as examples. Also remove old entries during routine editorial maintenance. Rebuild the site after changes, especially on static hosting.
+Use complete timestamps with a time-zone offset. Start and end times are interpreted as specific instants. Expired or future real campaigns are omitted from the active listing. Labelled demo cards stay visible only in fictional demo mode; the live catalog hides every `demo: true` campaign. If no real campaign is configured, the live offers page shows an empty state rather than example coupons. Also remove old entries during routine editorial maintenance. Rebuild the site after changes, especially on static hosting.
 
 The template cannot verify that a code is accepted in a merchant's checkout. Test it according to the program's permitted process and describe conditions accurately. Do not invent discount percentages, original prices, countdown scarcity or attribution promises.
 
@@ -184,14 +184,22 @@ Configure independent answer/search and model-training crawler choices in `src/c
 
 Implement shared improvements in this template first, validate them here, then bring the changes into each site with a reviewed merge or cherry-pick. Keep each site's identity, editorial material, approved programs and deployment secrets site-specific.
 
-At launch, monthly thereafter, and whenever adding a program, review bot documentation, Partner-ads terms, individual program conditions, approved creative, destinations and consent behavior. Record the review date and owner in the site's operations notes. This is a maintenance checklist; no recurring automation is created by the template.
+At launch, monthly thereafter, and whenever adding a program, review bot documentation, Partner-ads terms, individual program conditions, approved creative, destinations and consent behavior. Record the review date and owner in the site's operations notes. These editorial reviews are manual; the included Pages workflow separately schedules a daily product-data rebuild.
 
 ## Demo versus live data
 
 `src/data/products.json` provides a working UI before you have approved feeds. The demo's names, merchants, prices and specifications are fictional examples, and its purchase links are disabled. It should not be presented as a real comparison service.
 
-To switch to imported live data, run a separate [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed) service, set its server-only `PARTNER_ADS_API_URL`, and configure `PARTNER_ADS_FEEDS` with approved advertiser-specific extract IDs (`rid`) and `currency: "DKK"`. There is no need to copy private feed responses into source control. The service must be reachable while building and serving the storefront. Rebuild after feed configuration or product-route changes.
+To switch to imported live data, use a separate [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed) service, set its server-only `PARTNER_ADS_API_URL`, and configure `PARTNER_ADS_FEEDS` with approved advertiser-specific extract IDs (`rid`), merchant names and `currency: "DKK"`. Only supply optional program and banner IDs when their actual values are known. The deployed API is `https://partner-ads-json-feed.vercel.app`; its root may return `404`, while `/health` checks service status. `/api/feeds` is a temporary cache inventory, so explicit extract configuration remains necessary. There is no need to copy private feed responses into source control. The service must be reachable while building and, for server hosting, serving the storefront. Rebuild after feed configuration or product-route changes.
 
 Invalid live configuration remains in live mode and displays an error rather than substituting demo products. Missing shipping remains unknown; products with unknown availability or invalid prices are omitted. Offer update times preserve the service's `meta.cachedAt` instead of the storefront's fetch time. See [Partner-ads setup](partner-ads.md) for the complete mapping and migration from legacy XML feed URLs.
+
+Static export fetches a complete catalog once and shares its temporary snapshot
+across every generated route. A failed, empty or stale configured feed aborts
+the export, preserving the last successful Pages deployment. The included
+workflow refreshes daily at 02:17 UTC and also supports manual runs. Template
+showcase mode (`NEXT_PUBLIC_TEMPLATE_SHOWCASE=true`) keeps the design playground
+linked and prevents indexing even with real products; it is independent of
+fictional demo mode.
 
 The product and deal TypeScript definitions are in `src/lib/types.ts`. If you extend them, update validation, the relevant interface, tests and these docs together.

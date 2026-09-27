@@ -5,6 +5,10 @@ loadEnvConfig(process.cwd())
 
 const problems: string[] = []
 const notes: string[] = []
+if (process.env.NEXT_PUBLIC_TEMPLATE_SHOWCASE === 'true')
+  notes.push(
+    'Template showcase is enabled: search indexing remains disabled and the design playground stays linked, even with real feeds. Set NEXT_PUBLIC_TEMPLATE_SHOWCASE=false for an indexable production site.',
+  )
 const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim()
 try {
   const url = new URL(origin || '')
@@ -72,6 +76,10 @@ if (!rawFeeds?.trim()) {
     notes.push(
       `${feeds.length} approved DKK feed extract configuration(s) validated. Service availability and live responses have not been checked.`,
     )
+    if (feeds.some((feed) => !feed.programId))
+      notes.push(
+        'Some feeds have no programId. Source products use their feed:<rid> identity namespace; valid supplied affiliate links remain intact. Do not substitute extract or banner IDs for program IDs.',
+      )
     if (!partnerId)
       notes.push(
         'No PARTNER_ADS_PARTNER_ID: existing feed tracking links are retained, but ownership of their partner ID cannot be verified. Set your ID to validate attribution.',
@@ -82,7 +90,7 @@ if (!rawFeeds?.trim()) {
       )
   } catch {
     problems.push(
-      'PARTNER_ADS_FEEDS must be a JSON array of unique extracts with string rid, programId, merchant, currency: "DKK", approved: true, and optional string bannerId. Replace legacy url entries with the extract rid and set PARTNER_ADS_API_URL; rid is not the program, partner, or banner ID.',
+      'PARTNER_ADS_FEEDS must be a JSON array of unique extracts with string rid, merchant, currency: "DKK", approved: true, and optional string programId/bannerId. Replace legacy url entries with the extract rid and set PARTNER_ADS_API_URL; rid is not the program, partner, or banner ID.',
     )
   }
 }

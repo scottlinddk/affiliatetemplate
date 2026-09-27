@@ -8,7 +8,8 @@ export const MAX_FEEDS = 8
 export type FeedConfig = {
   /** Partner-ads feed extract ID, separate from the advertiser program ID. */
   rid: string
-  programId: string
+  /** Supply the advertiser program ID only when known; never substitute rid or bannerId. */
+  programId?: string
   merchant: string
   approved: true
   /** The JSON API does not expose currency; explicitly confirm a DKK extract. */
@@ -92,7 +93,7 @@ export function parseFeedConfig(raw: string): FeedConfig[] {
       row.approved !== true ||
       typeof row.rid !== 'string' ||
       !/^\d{1,100}$/.test(row.rid) ||
-      !isPositiveId(row.programId) ||
+      (row.programId !== undefined && !isPositiveId(row.programId)) ||
       row.currency !== 'DKK' ||
       typeof row.merchant !== 'string' ||
       !plainText(row.merchant, 100) ||
@@ -100,12 +101,12 @@ export function parseFeedConfig(raw: string): FeedConfig[] {
       (row.bannerId !== undefined && !isPositiveId(row.bannerId))
     ) {
       throw new FeedError(
-        'Et feed mangler rid, program-id, forhandler, DKK-valuta eller bekræftet godkendelse.',
+        'Et feed mangler rid, forhandler, DKK-valuta eller bekræftet godkendelse, eller har et ugyldigt program- eller banner-id.',
       )
     }
     return {
       rid: row.rid,
-      programId: row.programId,
+      ...(row.programId ? { programId: row.programId } : {}),
       merchant: plainText(row.merchant, 100),
       approved: true as const,
       currency: 'DKK' as const,
@@ -265,9 +266,12 @@ function parseProduct(
   const gtin = canonicalGtin(row.ean)
   // Product URLs and display names can change; require a durable identity.
   if (!gtin && !sourceId) return undefined
+  // Keep existing program-based identities. Unknown programs use a separate
+  // feed namespace so matching source IDs cannot merge unrelated extracts.
+  const identityNamespace = config.programId ?? `feed:${config.rid}`
   const id = gtin
     ? `gtin-${gtin}`
-    : `product-${stableHash(`${config.programId}:${sourceId}`)}`
+    : `product-${stableHash(`${identityNamespace}:${sourceId}`)}`
   const specs: Record<string, string> = {}
   if (gtin) specs.EAN = gtin.replace(/^0(?=\d{13}$)/, '')
   for (const [label, key] of [
@@ -280,14 +284,14 @@ function parseProduct(
   }
   const delivery = plainText(row.deliveryTime, 100)
   const offer: Offer = {
-    id: `offer-${stableHash(`${config.programId}:${sourceId || links.url}`)}`,
+    id: `offer-${stableHash(`${identityNamespace}:${sourceId || links.url}`)}`,
     merchant: config.merchant,
     price,
     currency: config.currency,
     ...(shipping !== undefined ? { shipping } : {}),
     inStock,
     ...links,
-    programId: config.programId,
+    ...(config.programId ? { programId: config.programId } : {}),
     updatedAt: options.updatedAt,
   }
   return {

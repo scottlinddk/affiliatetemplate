@@ -1,6 +1,6 @@
 import deals from '@/data/deals.json'
 import { isDirectMerchantUrl, isSafeAffiliateUrl } from './affiliate'
-import type { Deal } from './types'
+import type { Catalog, Deal } from './types'
 export function isActiveDeal(deal: Deal, now = Date.now()): boolean {
   const start = Date.parse(deal.startsAt),
     end = Date.parse(deal.expiresAt)
@@ -13,6 +13,6 @@ export function isActiveDeal(deal: Deal, now = Date.now()): boolean {
     (!deal.affiliateUrl || isSafeAffiliateUrl(deal.affiliateUrl))
   )
 }
-export function getDeals(): Deal[] {
-  return deals as Deal[]
+export function getDeals(mode: Catalog['mode']): Deal[] {
+  return (deals as Deal[]).filter((deal) => mode === 'demo' || !deal.demo)
 }

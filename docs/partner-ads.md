@@ -9,7 +9,16 @@
 
 The `approved: true` setting records your confirmation of those steps. It does not verify or grant approval through the Partner-ads service.
 
-The template reads JSON from a separately running [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed) service. That service handles the upstream XML download, parsing and cache. It accepts numeric extract IDs; it does not discover programs, authenticate to your affiliate account or accept arbitrary full merchant-feed URLs. Configure one advertiser per extract because the template assigns the entry's `programId` and `merchant` to every imported offer. Only DKK extracts are supported: the API does not report or convert currency, so `currency: "DKK"` is your explicit confirmation of the source currency.
+The template reads JSON from a separately running [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed) service. That service handles the upstream XML download, parsing and cache. It accepts numeric extract IDs; it does not discover programs, authenticate to your affiliate account or accept arbitrary full merchant-feed URLs. Configure one advertiser per extract because the template assigns the entry's `merchant` and, when supplied, `programId` to every imported offer. Only DKK extracts are supported: the API does not report or convert currency, so `currency: "DKK"` is your explicit confirmation of the source currency.
+
+The existing deployed service is `https://partner-ads-json-feed.vercel.app`.
+The published template example uses extract `7501` for Dansk Restlager. This
+demonstrates a real integration; it does not grant another site permission to
+reuse that feed or its affiliate attribution. Configure your own approved
+extracts for a new site. The service root returning `404` is expected: use
+`/health` to check service status. `/api/feeds` lists only the current process's
+cached extracts, which can disappear after expiry or a cold start. It is not
+a program directory or permanent configuration-discovery endpoint.
 
 ## Environment example
 
@@ -26,7 +35,14 @@ PARTNER_ADS_FEEDS='[{"rid":"1234","programId":"12345","merchant":"Your merchant"
 
 In a hosting dashboard, paste the JSON array as the value of `PARTNER_ADS_FEEDS` without the enclosing shell-style single quotes. Keep all `PARTNER_ADS_*` variables server-only; do not prefix them with `NEXT_PUBLIC_`.
 
-`PARTNER_ADS_API_URL` is the service's HTTP(S) base URL, optionally including a hosting path prefix such as `https://feeds.example.com/partner-ads`. Do not include `/api/feed/:rid`, credentials, query parameters or a fragment. Local development can use `http://localhost:1337`. Requests append `/api/feed/:rid?page=1&limit=100` and follow all result pages. Redirects are rejected, so use the final service URL.
+`PARTNER_ADS_API_URL` is the service's HTTP(S) base URL, optionally including a hosting path prefix such as `https://feeds.example.com/partner-ads`. Do not include `/api/feed/:rid`, credentials, query parameters or a fragment. Local development can use `http://localhost:1337`, or the deployed API if you do not need to run a local service. Requests append `/api/feed/:rid?page=1&limit=100` and follow all result pages. Redirects are rejected, so use the final service URL.
+
+`rid`, `merchant`, `approved: true` and `currency: "DKK"` are required for each
+extract. `programId` and `bannerId` are optional: omit either when you do not
+know its actual value. Existing valid affiliate links are preserved without
+inventing IDs. A feed with no `programId` uses `feed:<rid>` as its source-product
+identity namespace. Do not substitute its extract, partner or banner ID for a
+program ID.
 
 Run `npm run check:config`, then `npm run build`. The configuration check validates structure without contacting the service. Check actual merchant destinations and program attribution before launching.
 
@@ -56,23 +72,23 @@ For deployment, build and run the service separately using its own instructions.
 
 1. Deploy or start `partner-ads-json-feed` and set `PARTNER_ADS_API_URL`.
 2. Replace each legacy `url` in `PARTNER_ADS_FEEDS` with the numeric string `rid` from an existing Partner-ads extract URL. If you only have a merchant's full-feed URL, obtain an advertiser-specific extract first; a program ID is not an extract ID.
-3. Retain the real `programId`, `merchant`, `approved: true` and optional `bannerId`, and add `currency: "DKK"` after verifying the extract's currency.
+3. Retain `merchant`, `approved: true` and any known real `programId`/`bannerId`, and add `currency: "DKK"` after verifying the extract's currency. Omit unknown optional IDs.
 4. Run `npm run check:config`, rebuild, and inspect the live catalog, source timestamps and merchant attribution. Legacy `url` entries are rejected with a migration error; they are never fetched directly.
 
 XML handling and its dependency have been removed from this template. Text and numeric normalization now come from the service's JSON contract; the storefront still validates every row before display.
 
 ### Four different identifiers
 
-| Identifier         | Meaning                                                                          |
-| ------------------ | -------------------------------------------------------------------------------- |
-| Partner ID         | Your affiliate account.                                                          |
-| Extract ID (`rid`) | A saved Partner-ads feed extract, used in the JSON API endpoint.                 |
-| Program ID         | The advertiser program, used here to keep product and offer identities separate. |
-| Banner ID          | A specific Partner-ads link/creative identifier, used to construct a deeplink.   |
+| Identifier         | Meaning                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| Partner ID         | Your affiliate account.                                                                                  |
+| Extract ID (`rid`) | A saved Partner-ads feed extract, used in the JSON API endpoint.                                         |
+| Program ID         | Optional actual advertiser program ID; used to namespace source-product and offer identities when known. |
+| Banner ID          | A specific Partner-ads link/creative identifier, used to construct a deeplink.                           |
 
 **A program ID is not a banner ID.** Copy the real deeplink banner ID from the material made available for the approved program. Leave `bannerId` unset if you do not have one. The template does not invent it.
 
-If the feed supplies an existing Partner-ads tracking link, the importer validates its shape and extracts a direct destination. If `PARTNER_ADS_PARTNER_ID` is configured, the tracking link must match that partner ID. For a plain merchant URL, the template constructs a tracking URL only when both your partner ID and that feed's explicit banner ID are present; otherwise it remains a direct link.
+If the feed supplies an existing Partner-ads tracking link, the importer validates its shape, preserves that URL and extracts a direct destination. If `PARTNER_ADS_PARTNER_ID` is configured, the tracking link must match that partner ID. For a plain merchant URL, the template constructs a tracking URL only when both your partner ID and that feed's explicit banner ID are present; otherwise it remains a direct link. Supplying a `programId` alone does not create or change tracking attribution.
 
 The helper supports an optional campaign `uid`, placed before `htmlurl` as required by Partner-ads. No visitor identifier is added automatically. Never place personal data in campaign identifiers.
 
@@ -91,14 +107,14 @@ The template consumes `data`, `pagination` and `meta` from `GET /api/feed/:rid`.
 | `size`, `color`, `gender`, `deliveryTime`  | Populate available product specifications and delivery information.                                                                                           |
 | `meta.cachedAt`                            | Preserve the service's source-download time as the offer update time.                                                                                         |
 
-The configured `merchant` and `programId` are authoritative for attribution; the API's retailer text does not change them. Optional `originalPrice`, `onSale` and `discountPercentage` do not create advertised savings in the storefront.
+The configured `merchant` and any supplied `programId` identify the advertiser; the API's retailer text does not change them. Affiliate attribution comes from the validated supplied tracking URL or your explicit partner/banner link configuration. Optional `originalPrice`, `onSale` and `discountPercentage` do not create advertised savings in the storefront.
 
-- A valid matching GTIN allows offers from different merchants to be grouped. Without one, products stay separate by program and source ID or URL. Similar names alone do not prove that products are identical.
+- A valid matching GTIN allows offers from different merchants to be grouped. Without one, products stay separate by source ID and the configured program namespace, or `feed:<rid>` when no program ID is known. A missing source ID without a valid GTIN rejects the row. Similar names alone do not prove that products are identical.
 - Unknown shipping stays unknown. Comparisons use the product price plus known shipping and show the limitation.
 - Imports are limited to eight extracts, 5,000 rows and 8 MiB of JSON responses in total per extract, with a 60-second timeout across all pages. This allows for the service's default 30-second cold XML download. Use narrower extracts for a larger source catalog.
 - The service separately enforces its own upstream XML download, encoding and cache limits. See its [README](https://github.com/scottlinddk/partner-ads-json-feed#configuration-and-operation) for configuration.
 
-An empty feed setting enables the demo. A configured live feed that fails does **not** fall back to fictional offers. The interface displays the available catalog and warnings; if all configured feeds fail, the live catalog is empty. Error messages deliberately omit private feed URLs.
+An empty feed setting enables the demo. A configured live feed that fails does **not** fall back to fictional offers. During server operation, the interface displays the available catalog and warnings; if all configured feeds fail, the live catalog is empty. Static export is stricter: a failed, empty or stale configured feed aborts the build rather than publishing a partial or empty replacement. Error messages deliberately omit private feed URLs.
 
 The displayed update time comes from the API's `meta.cachedAt`, recording when the service downloaded the source. Reading it again does not make old data newer, and it does not establish when the advertiser last changed a price. Check source quality and freshness in your account as part of normal operations.
 
@@ -112,7 +128,7 @@ Only use product content and creative you are authorized to use. The template in
 
 ## Coupons and campaigns
 
-Offers are maintained in `src/data/deals.json`; the template does not promise an undocumented coupon API or scrape private program materials. Enter the real code, merchant, conditions, approved destination and start/end dates. Expired real entries are removed from the current offers view; labelled demo cards remain as illustrative examples.
+Offers are maintained in `src/data/deals.json`; the template does not promise an undocumented coupon API or scrape private program materials. Enter the real code, merchant, conditions, approved destination and start/end dates. Expired real entries are removed from the current offers view. Labelled demo cards remain visible only in fictional demo mode; live feeds never display those example coupons. Product-feed discounts do not automatically create editorial campaign entries.
 
 Some Partner-ads programs support unique-code attribution by agreement with the advertiser. Listing a coupon here does **not** establish that agreement or guarantee commission. Verify campaign-specific conditions in your account.
 
@@ -120,9 +136,26 @@ Some Partner-ads programs support unique-code attribution by agreement with the 
 
 The service caches downloaded feeds in memory for one hour by default. Separately, the Next.js server caches the processed catalog for one hour and revalidates when requested after that interval. These caches reduce repeated requests, but they are not a scheduled refresh. The original `meta.cachedAt` is retained through both layers. The service cache is lost on restart and is not shared across instances.
 
-Ensure the service is running and reachable before a build or revalidation. Newly added products may require a rebuild to produce their static detail routes. Feed configuration, guides, curated offers and site settings require a rebuild after edits. An API failure can produce an empty live catalog with warnings, so inspect live results as part of deployment instead of treating a successful build as proof of feed availability.
+Ensure the service is running and reachable before a build or revalidation. Newly added products may require a rebuild to produce their static detail routes. Feed configuration, guides, curated offers and site settings require a rebuild after edits. A normal server build or later revalidation can produce an empty live catalog with warnings, so inspect live results as part of deployment.
 
-On static hosting, schedule `npm ci && npm run check && npm run check:config && npm run generate` in your deployment system at least daily. Publish `out/` only after a successful build. Monitor failures and review a real product page after deployment. Do not reset timestamps on old data to make it appear current.
+For static hosting, `npm run generate` first calls `scripts/prepare-catalog.ts`
+to load every page of every configured feed. It freezes one temporary catalog
+snapshot for all generated routes and removes it when the export finishes.
+Any failed or inconsistent feed, a feed with no valid products, or stale/invalid
+offer timestamps aborts the export. A fresh valid feed with only out-of-stock
+products still publishes those unavailable statuses. Only publish `out/`
+after the entire export succeeds; this keeps the last working deployment in
+place during a feed outage.
+
+The included GitHub Pages workflow rebuilds daily at **02:17 UTC**, on pushes,
+and on manual dispatch. It reads `PARTNER_ADS_FEEDS` and `PARTNER_ADS_PARTNER_ID`
+from repository secrets, plus `PARTNER_ADS_API_URL` from a repository variable.
+See [GitHub Pages setup](github-pages.md) for configuration and showcase mode.
+For other static hosts, schedule your validated export at least daily. Run
+`npm run check:config` as part of your own production launch checks; the public
+template showcase intentionally remains outside search indexes. Monitor
+refresh failures and review a real product page after deployment. Do not reset
+timestamps on old data to make it appear current.
 
 The included seven-day price limit is a last-resort display guard. The Partner-ads feed guide's minimum weekly refresh remains an operational responsibility. Merchant confirmation takes precedence over displayed price and stock.
 

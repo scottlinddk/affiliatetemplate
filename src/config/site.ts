@@ -2,6 +2,8 @@ import type { CrawlerPolicy } from '../lib/crawlers'
 import { absoluteSiteUrl } from '@/lib/paths'
 
 export const site = {
+  // A template showcase can use real products while remaining outside search indexes.
+  showcase: process.env.NEXT_PUBLIC_TEMPLATE_SHOWCASE === 'true',
   name: 'Velvalgt',
   tagline: 'Gode valg. Mere hverdagsglæde.',
   description:

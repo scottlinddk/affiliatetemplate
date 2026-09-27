@@ -20,9 +20,10 @@ export const metadata: Metadata = {
   description: site.description,
   openGraph: { type: 'website', locale: 'da_DK', siteName: site.name },
   twitter: { card: 'summary_large_image' },
-  robots: process.env.PARTNER_ADS_FEEDS?.trim()
-    ? { index: true, follow: true }
-    : { index: false, follow: false },
+  robots:
+    !site.showcase && process.env.PARTNER_ADS_FEEDS?.trim()
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
 }
 export default function RootLayout({
   children,
@@ -84,7 +85,7 @@ export default function RootLayout({
                 <h2>Godt at vide</h2>
                 <Link href="/om">Om os og reklamelinks</Link>
                 <Link href="/privatliv">Privatliv og cookies</Link>
-                {!process.env.PARTNER_ADS_FEEDS?.trim() && (
+                {(site.showcase || !process.env.PARTNER_ADS_FEEDS?.trim()) && (
                   <Link href="/design">Tilpas designet</Link>
                 )}
                 <PreferenceButton />

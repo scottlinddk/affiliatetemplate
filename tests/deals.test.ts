@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isActiveDeal } from '../src/lib/deals'
+import { getDeals, isActiveDeal } from '../src/lib/deals'
 import type { Deal } from '../src/lib/types'
 const deal: Deal = {
   id: 'offer',
@@ -12,6 +12,17 @@ const deal: Deal = {
   url: 'https://example.com',
   terms: 'Terms',
 }
+test('fictional campaign examples are only available in demo mode', () => {
+  const examples = getDeals('demo').filter((campaign) => campaign.demo)
+  assert.ok(examples.length > 0, 'demo mode retains its campaign examples')
+  const live = getDeals('live')
+  assert.ok(live.every((campaign) => !campaign.demo))
+  assert.ok(
+    live.every(
+      (campaign) => !examples.some((example) => example.id === campaign.id),
+    ),
+  )
+})
 test('deals are only active between their inclusive start and exclusive expiry', () => {
   assert.equal(isActiveDeal(deal, Date.parse(deal.startsAt)), true)
   assert.equal(isActiveDeal(deal, Date.parse(deal.expiresAt)), false)
