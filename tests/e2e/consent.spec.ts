@@ -36,7 +36,7 @@ test.beforeAll(async () => {
     format: 'iife',
     platform: 'browser',
     jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"test"' },
+    define: { 'process.env.NODE_ENV': '"test"', 'process.env': '{}' },
   })
   const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')
   fixtureHtml = `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Consent component test</title></head><body><main id="fixture"></main><script>${script}</script></body></html>`

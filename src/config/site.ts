@@ -1,3 +1,5 @@
+import type { CrawlerPolicy } from '../lib/crawlers'
+
 export const site = {
   name: 'Velvalgt',
   tagline: 'Gode valg. Mere hverdagsglæde.',
@@ -14,4 +16,13 @@ export const site = {
   priceDisclaimer:
     'Priser og lagerstatus kan ændre sig. Den aktuelle pris og eventuelle leveringsomkostninger fremgår hos forhandleren.',
   maxPriceAgeDays: 7,
+  // Per-site crawl choices; demo mode always blocks every crawler.
+  crawlers: {
+    'OAI-SearchBot': true,
+    PerplexityBot: true,
+    GPTBot: false,
+    // This token controls Gemini grounding as well as training.
+    'Google-Extended': false,
+  } satisfies CrawlerPolicy,
+  llmsTxt: true,
 }

@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const baseURL = 'http://127.0.0.1:3100'
+const port = Number(process.env.PLAYWRIGHT_PORT || '3100')
+if (!Number.isInteger(port) || port < 1 || port > 65535)
+  throw new Error('PLAYWRIGHT_PORT must be an integer from 1 to 65535')
+const baseURL = `http://127.0.0.1:${port}`
 const channel = process.env.PLAYWRIGHT_CHANNEL
 
 export default defineConfig({
@@ -24,10 +27,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command:
-      'node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3100',
+    command: `node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${port}`,
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    // Avoid silently testing another checkout that happens to own the port.
+    reuseExistingServer:
+      !process.env.CI && process.env.PLAYWRIGHT_REUSE_SERVER === 'true',
     timeout: 120_000,
     env: {
       PARTNER_ADS_FEEDS: '',

@@ -1988,6 +1988,31 @@ input[type='radio'] {
     font-size: 13px;
   }
 }
+.content-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 32px;
+}
+.content-navigation [aria-current='page'] {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.article .breadcrumb {
+  flex-wrap: wrap;
+}
+.article .advertiser-banner {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+.article .prose {
+  overflow-wrap: anywhere;
+}
+.article-product {
+  margin: 32px 0;
+  max-width: 520px;
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

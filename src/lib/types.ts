@@ -46,3 +46,38 @@ export type Deal = {
   terms: string
   demo?: boolean
 }
+
+export type ContentType = 'guide' | 'review' | 'comparison' | 'post'
+
+export type ContentFaq = {
+  q: string
+  a: string
+}
+
+export type ContentSource = {
+  title: string
+  url: string
+}
+
+/** All editorial content retains one stable filename in content/guides. */
+export type Guide = {
+  slug: string
+  type: ContentType
+  title: string
+  description: string
+  category: string
+  date: string
+  updated?: string
+  author?: string
+  readingTime: number
+  content: string
+  image: string
+  /** Only reviews and comparisons can declare products and a verdict. */
+  products?: string[]
+  verdict?: string
+  faq?: ContentFaq[]
+  sources?: ContentSource[]
+  /** An explicit order overrides suggestions; [] disables the related block. */
+  related?: string[]
+  pillar?: string
+}

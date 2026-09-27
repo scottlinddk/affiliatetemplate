@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import {
   createContext,
   useContext,
@@ -97,7 +98,7 @@ export function ConsentSettings() {
         <p>
           Vi bruger lokal lagring til dine valg. Tillad affiliate-sporing, hvis
           du vil støtte os, når du handler. Uden tilladelse bruger vi direkte
-          butikslinks. <a href="/privatliv">Læs om privatliv</a>.
+          butikslinks. <Link href="/privatliv">Læs om privatliv</Link>.
         </p>
       </div>
       <div className="consent-actions">
