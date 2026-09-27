@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getCatalog } from '@/lib/catalog'
 import { getGuides } from '@/lib/guides'
+import { contentPath } from '@/lib/content-paths'
 import { ProductCard } from '@/components/product-card'
 import { Icon } from '@/components/icons'
 import { getCategories } from '@/lib/categories'
@@ -10,7 +11,9 @@ export const revalidate = 3600
 export const metadata = { alternates: { canonical: '/' } }
 export default async function Home() {
   const catalog = await getCatalog()
-  const guides = getGuides().slice(0, 3)
+  const guides = getGuides()
+    .filter((article) => article.type === 'guide')
+    .slice(0, 3)
   const featured = [...catalog.products]
     .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
     .slice(0, 4)
@@ -163,11 +166,7 @@ export default async function Home() {
           </div>
           <div className="guide-grid">
             {guides.map((g) => (
-              <Link
-                href={`/guides/${g.slug}`}
-                className="guide-card"
-                key={g.slug}
-              >
+              <Link href={contentPath(g)} className="guide-card" key={g.slug}>
                 <img
                   src={withBasePath(g.image)}
                   alt=""

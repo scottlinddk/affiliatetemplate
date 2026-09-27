@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCatalog } from '@/lib/catalog'
 import { getOfferStatus } from '@/lib/affiliate'
+import { schemaAvailability } from '@/lib/product-schema'
 import { ProductActions, ProductCard } from '@/components/product-card'
 import { ProductImage } from '@/components/product-image'
 import { OfferTable } from '@/components/offer-table'
@@ -52,7 +53,7 @@ export default async function ProductPage({
       '@type': 'Offer',
       price: o.price,
       priceCurrency: o.currency,
-      availability: 'https://schema.org/InStock',
+      availability: schemaAvailability(o.inStock),
       url: o.url,
       seller: { '@type': 'Organization', name: o.merchant },
     })),

@@ -63,6 +63,9 @@ export default function RootLayout({
                 <h2>Find dit næste valg</h2>
                 <Link href="/produkter">Alle produkter</Link>
                 <Link href="/guides">Købsguides</Link>
+                <Link href="/anmeldelser">Anmeldelser</Link>
+                <Link href="/sammenligninger">Sammenligninger</Link>
+                <Link href="/artikler">Artikler</Link>
                 <Link href="/tilbud">Tilbud og rabatkoder</Link>
                 <Link href="/sammenlign">Sammenlign produkter</Link>
               </div>

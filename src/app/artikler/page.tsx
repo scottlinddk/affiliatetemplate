@@ -1,8 +1,8 @@
 import { ArticleList } from '@/components/article-list'
 export const metadata = {
-  title: 'Købsguides',
-  alternates: { canonical: '/guides' },
+  title: 'Artikler',
+  alternates: { canonical: '/artikler' },
 }
 export default function Page() {
-  return <ArticleList type="guide" />
+  return <ArticleList type="post" />
 }

@@ -238,7 +238,7 @@ test('API JSON maps product fields and preserves cache freshness and publisher a
   assert.equal(result.rejectedRows, 0)
   const product = result.products[0]
   assert.equal(product.name, 'Kaffemaskine Ærø')
-  assert.match(product.slug, /^kaffemaskine-aeroe-/)
+  assert.equal(product.slug, 'gtin-04006381333931')
   assert.equal(product.demo, false)
   assert.equal(product.specs.Farve, 'Grøn')
   assert.equal(product.specs.Størrelse, 'S|M')
@@ -382,12 +382,60 @@ test('validated GTINs group merchants deterministically and source IDs retain le
   assert.deepEqual(merged, mergeCatalogProducts([b, a]))
   assert.equal(mergeCatalogProducts([a, a])[0].offers.length, 1)
   assert.equal(a.offers.length, 1)
+  assert.equal(a.slug, b.slug)
+  assert.equal(merged[0].slug, a.slug)
   const separate = parsePartnerAdsFeed(
     [...rows({ id: '000123' }), ...rows({ id: '123' })],
     config,
     options,
   )
   assert.equal(separate.products.length, 2)
+})
+
+test('product slugs survive product and merchant renames, URL changes, and merchant removal', () => {
+  for (const ean of ['', '4006381333931']) {
+    const original = parsePartnerAdsFeed(rows({ ean }), config, options)
+      .products[0]
+    const renamed = parsePartnerAdsFeed(
+      rows({
+        ean,
+        name: 'Et helt nyt navn',
+        productUrl: 'https://merchant.example/new-url',
+      }),
+      { ...config, merchant: 'Nyt butiksnavn' },
+      options,
+    ).products[0]
+    assert.equal(original.slug, original.id)
+    assert.equal(renamed.slug, original.slug)
+  }
+  const firstMerchant = parsePartnerAdsFeed(
+    rows({ ean: '4006381333931', name: 'A' }),
+    config,
+    options,
+  ).products[0]
+  const otherMerchant = parsePartnerAdsFeed(
+    rows({ ean: '04006381333931', name: 'Z' }),
+    { ...config, programId: '987', merchant: 'Anden butik' },
+    options,
+  ).products[0]
+  assert.equal(
+    mergeCatalogProducts([firstMerchant, otherMerchant])[0].slug,
+    mergeCatalogProducts([otherMerchant])[0].slug,
+  )
+})
+
+test('a product requires either a valid GTIN or a nonempty source ID for a stable slug', () => {
+  for (const id of ['', '   ']) {
+    assert.equal(
+      parsePartnerAdsFeed(rows({ id }), config, options).rejectedRows,
+      1,
+    )
+    assert.equal(
+      parsePartnerAdsFeed(rows({ id, ean: '4006381333931' }), config, options)
+        .products[0].slug,
+      'gtin-04006381333931',
+    )
+  }
 })
 
 test('invalid EANs and same names never combine unrelated merchants', () => {

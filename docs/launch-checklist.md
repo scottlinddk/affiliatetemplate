@@ -6,6 +6,8 @@
 - [ ] Replace the demo branding, illustrative catalog and placeholder campaigns.
 - [ ] Review every public page on desktop and mobile, including an empty search and an unavailable product.
 - [ ] Review original guide copy and any sources; remove unsupported test, review or lowest-price claims.
+- [ ] Choose each article's permanent type/route; verify author, real publication/revision dates, FAQ, sources, related links and local hero image. Unknown fields and missing references must pass the build checks.
+- [ ] Migrate any old name-prefixed live product URLs with a saved mapping and host-level permanent redirects before deploying stable identifier slugs to an existing site.
 - [ ] Confirm permission to use all product descriptions, images and creative.
 - [ ] Customize the privacy page for your actual host, log retention, recipients, contact details and integrations.
 
@@ -21,6 +23,7 @@
 - [ ] Verify a tracking link uses your correct partner ID and opens the intended merchant page after opt-in.
 - [ ] Verify a visitor who has not opted in gets a direct merchant link.
 - [ ] Verify footer privacy settings revoke future tracking-link use.
+- [ ] Test product, offer-table and CTA Markdown blocks and both article banner placements before consent, after consent and after revocation. Review the combined five-link editorial budget, including banner text fallbacks.
 - [ ] Verify each live coupon, its dates and material conditions; remove all fictitious offers.
 
 ## Technical checks
@@ -38,6 +41,7 @@ npm run test:e2e
 - [ ] Review a production build, not just the development server.
 - [ ] Check favorites and comparison, keyboard navigation, visible focus, mobile navigation and consent controls.
 - [ ] Inspect page titles, canonical URLs, sharing previews, `sitemap.xml` and `robots.txt` using your live origin.
+- [ ] Choose independent crawler settings and whether to publish `llms.txt`; check that demo sites remain blocked. Validate Article/Breadcrumb/FAQ JSON-LD against the visible article.
 - [ ] Confirm product images load from their expected merchant hosts; do not introduce an image proxy for feed images without permission.
 - [ ] Test unavailable API, failed later pages and empty feed behavior; confirm warnings appear and live data is never silently replaced with demo offers.
 - [ ] Confirm unknown shipping is not labelled free and unknown stock is not advertised as available.
@@ -54,5 +58,6 @@ npm run test:e2e
 - [ ] Monitor failed builds, empty feeds, missing images and expired campaigns; confirm a real page after deployment.
 - [ ] Check prices against merchants and meet Partner-ads' current refresh requirements; the seven-day display limit is a fallback, not a maintenance schedule.
 - [ ] Re-read program conditions and disclosure/privacy requirements whenever you add services or change the site's behavior.
+- [ ] Assign an owner to a monthly review of crawler documentation, Partner-ads page limits and each program's current terms; record the date and resulting changes. See [crawler policy](crawlers.md).
 
 The template provides a working implementation and editable information pages. Approval of advertiser programs, permission to use content, feed accuracy, a working deployment and business-specific notices remain launch responsibilities.

@@ -1,14 +1,11 @@
 import type { MetadataRoute } from 'next'
-import { absoluteSiteUrl, withBasePath } from '@/lib/paths'
+import { site } from '@/config/site'
+import { buildRobots } from '@/lib/crawlers'
 export const dynamic = 'force-static'
 export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: {
-      userAgent: '*',
-      ...(process.env.PARTNER_ADS_FEEDS?.trim()
-        ? { allow: withBasePath('/'), disallow: withBasePath('/sammenlign') }
-        : { disallow: '/' }),
-    },
-    sitemap: absoluteSiteUrl('/sitemap.xml'),
-  }
+  return buildRobots(
+    Boolean(process.env.PARTNER_ADS_FEEDS?.trim()),
+    site.url,
+    site.crawlers,
+  )
 }

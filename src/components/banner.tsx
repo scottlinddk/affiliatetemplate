@@ -57,6 +57,9 @@ export function BannerPlacement({
   const { state } = usePreferences()
   const banner = getBannerForPlacement(placement)
   return banner ? (
-    <BannerContent banner={banner} marketing={state.marketing} />
+    <BannerContent
+      banner={banner}
+      marketing={state.decided && state.marketing}
+    />
   ) : null
 }

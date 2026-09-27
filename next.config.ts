@@ -10,5 +10,8 @@ const config: NextConfig = {
     : {}),
   // Feed images must remain on the advertiser's host.
   images: { unoptimized: true },
+  // Image validation uses dynamic paths. Include only public assets in server
+  // deployments so revalidation can check them without tracing the whole repo.
+  outputFileTracingIncludes: { '/*': ['./public/**/*'] },
 }
 export default config

@@ -44,7 +44,8 @@ For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` wh
 - Affiliate links that respect the visitor's saved choice; direct merchant links without affiliate consent.
 - Optional approved banner placements, loaded only after the visitor allows affiliate tracking.
 - A manually maintained offers/coupon page with validity dates and clear conditions.
-- Markdown buying guides, article metadata, sitemap and robots output.
+- Typed Markdown guides, reviews, comparisons and posts with consent-aware product/offer/CTA blocks, strict build validation, author/FAQ/source rendering and related links.
+- Article, breadcrumb and FAQ structured data, stable product URLs, sitemap and configurable AI crawler rules with an optional `llms.txt` index.
 - Visible advertising disclosure, an about page, an editable privacy page and persistent privacy settings.
 - Local demo illustrations, accessible labels, empty/error states and automated checks.
 
@@ -84,13 +85,15 @@ The template does not infer advertiser approval. You need an approved affiliate 
 | `npm run test:e2e`     | Run browser tests; install Playwright Chromium first.                                                  |
 
 Install the browser needed for end-to-end tests with `npx playwright install chromium`.
+Browser tests start their own server on port 3100. Set `PLAYWRIGHT_PORT` to use a different port when another checkout is running. Reusing an existing server requires the explicit `PLAYWRIGHT_REUSE_SERVER=true` setting outside CI.
 
 ## Content and data
 
 - `src/data/products.json`: illustrative demo products. Demo merchant links are disabled.
 - `src/data/deals.json`: editorial offers, codes, validity dates and terms. Keep example offers labelled as demo.
 - `src/data/banners.json`: optional approved advertiser creative; empty by default.
-- `content/guides/*.md`: buying guides with frontmatter; no CMS required.
+- `content/guides/*.md`: guides, reviews, comparisons and posts with validated frontmatter; no CMS required.
+- `src/data/programs.json`: approved CTA programs for editorial Markdown, empty by default.
 - `src/app/om/page.tsx` and `src/app/privatliv/page.tsx`: public information pages to adapt to your business and hosting.
 - `public/images/`: bundled illustrations; live product images remain on the advertiser's host.
 

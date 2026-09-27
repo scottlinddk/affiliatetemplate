@@ -38,8 +38,11 @@ test.beforeAll(async () => {
     platform: 'browser',
     jsx: 'automatic',
     define: {
+      'process.env': '{}',
       'process.env.NODE_ENV': '"test"',
       'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(fixtureBasePath),
+      // Mirror the basePath value Next compiles into its Link component.
+      'process.env.__NEXT_ROUTER_BASEPATH': JSON.stringify(fixtureBasePath),
     },
   })
   const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')

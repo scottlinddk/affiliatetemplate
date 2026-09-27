@@ -11,7 +11,7 @@ export type Banner = {
   width: number
   height: number
   approved: true
-  placement: 'home' | 'product'
+  placement: 'home' | 'product' | 'article-inline' | 'article-end'
 }
 
 function safeHttps(value: unknown): value is string {
@@ -57,7 +57,10 @@ export function parseBanners(value: unknown): Banner[] {
       !safeHttps(row.image) ||
       !safeDirectLink(row.url) ||
       (row.affiliateUrl !== undefined && !safeHttps(row.affiliateUrl)) ||
-      (row.placement !== 'home' && row.placement !== 'product') ||
+      (row.placement !== 'home' &&
+        row.placement !== 'product' &&
+        row.placement !== 'article-inline' &&
+        row.placement !== 'article-end') ||
       typeof row.width !== 'number' ||
       !Number.isInteger(row.width) ||
       row.width < 1 ||

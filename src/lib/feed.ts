@@ -147,21 +147,6 @@ function stableHash(value: string): string {
   return (a >>> 0).toString(36) + (b >>> 0).toString(36)
 }
 
-function slugify(value: string): string {
-  return (
-    value
-      .toLowerCase()
-      .replace(/æ/g, 'ae')
-      .replace(/ø/g, 'oe')
-      .replace(/å/g, 'aa')
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 70) || 'produkt'
-  )
-}
-
 /** GTIN check digits prevent accidentally grouping unrelated malformed EANs. */
 function canonicalGtin(value: string): string | undefined {
   const code = value.replace(/[\s-]/g, '')
@@ -273,14 +258,16 @@ function parseProduct(
     return undefined
   const shipping = jsonPrice(row.shippingCost)
   if (row.shippingCost != null && shipping === undefined) return undefined
-  // Keep source IDs as strings, including leading zeroes. Empty IDs use the URL.
+  // Keep source IDs as strings, including leading zeroes.
   if (typeof row.id !== 'string' || typeof row.ean !== 'string')
     return undefined
   const sourceId = row.id.trim()
   const gtin = canonicalGtin(row.ean)
+  // Product URLs and display names can change; require a durable identity.
+  if (!gtin && !sourceId) return undefined
   const id = gtin
     ? `gtin-${gtin}`
-    : `product-${stableHash(`${config.programId}:${sourceId || links.url}`)}`
+    : `product-${stableHash(`${config.programId}:${sourceId}`)}`
   const specs: Record<string, string> = {}
   if (gtin) specs.EAN = gtin.replace(/^0(?=\d{13}$)/, '')
   for (const [label, key] of [
@@ -305,7 +292,7 @@ function parseProduct(
   }
   return {
     id,
-    slug: `${slugify(name)}-${gtin || stableHash(id)}`,
+    slug: id,
     name,
     brand: plainText(row.brand, 100) || 'Ukendt mærke',
     category: plainText(row.category, 100) || 'Øvrigt',
