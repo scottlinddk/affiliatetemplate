@@ -98,6 +98,15 @@ export default function PrivacyPage() {
           De kan hente indhold fra annoncørens server, som også kan modtage
           tekniske oplysninger om forespørgslen.
         </p>
+        <h2>Skrifttyper</h2>
+        <p>
+          Hvis sidens design eller dit valg i designværkstedet bruger Google
+          Fonts, henter browseren skrifttypestile fra fonts.googleapis.com og
+          skrifttypefiler fra fonts.gstatic.com. Google modtager dermed tekniske
+          oplysninger om forespørgslen, herunder din IP-adresse. Design med
+          lokale skrifttyper sender ikke disse forespørgsler. Indlæsning af
+          skrifttyper er separat fra dit valg om reklamelinks.
+        </p>
         <h2>Drift og opbevaring</h2>
         <p>
           Den valgte hostingudbyder kan behandle tekniske oplysninger i

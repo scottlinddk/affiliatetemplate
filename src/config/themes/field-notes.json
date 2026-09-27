@@ -1,0 +1,105 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Field notes",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#f4f1e7",
+      "foreground": "#323828",
+      "card": "#fffcf3",
+      "primary": "#485530",
+      "primaryForeground": "#ffffff",
+      "secondary": "#e2e7cb",
+      "secondaryForeground": "#43502b",
+      "muted": "#e8e9db",
+      "mutedForeground": "#60684b",
+      "accent": "#805034",
+      "accentForeground": "#ffffff",
+      "border": "#cfd2b9",
+      "input": "#9ba681",
+      "ring": "#6b713f",
+      "success": "#496334",
+      "warning": "#805a1a",
+      "destructive": "#a5402b",
+      "imageBackground": "#e0e4c8",
+      "overlayForeground": "#fffbed"
+    },
+    "dark": {
+      "background": "#1b2117",
+      "foreground": "#edf0dc",
+      "card": "#293122",
+      "primary": "#c0d493",
+      "primaryForeground": "#26311a",
+      "secondary": "#3c472d",
+      "secondaryForeground": "#e3edcb",
+      "muted": "#303925",
+      "mutedForeground": "#bcc79d",
+      "accent": "#e3b38b",
+      "accentForeground": "#3e2716",
+      "border": "#515d3e",
+      "input": "#7b8b5e",
+      "ring": "#d2d99f",
+      "success": "#b8d593",
+      "warning": "#ebd186",
+      "destructive": "#f1a38a",
+      "imageBackground": "#455234",
+      "overlayForeground": "#fffbed"
+    }
+  },
+  "typography": {
+    "headingFont": "'Fraunces', Georgia, 'Times New Roman', serif",
+    "bodyFont": "'Work Sans', Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "googleFonts": [
+      {
+        "family": "Fraunces",
+        "weights": [400, 500, 600],
+        "italic": true
+      },
+      {
+        "family": "Work Sans",
+        "weights": [400, 500, 600],
+        "italic": true
+      }
+    ],
+    "baseSize": 16,
+    "scale": 1.01,
+    "headingWeight": 500,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.1,
+    "bodyLineHeight": 1.7,
+    "headingLetterSpacing": -0.03,
+    "bodyLetterSpacing": -0.005
+  },
+  "radius": {
+    "card": 10,
+    "button": 6,
+    "input": 6
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 4,
+      "blur": 0,
+      "spread": 0,
+      "opacity": 0.12,
+      "color": "#364125"
+    },
+    "floating": {
+      "x": 0,
+      "y": 8,
+      "blur": 20,
+      "spread": -5,
+      "opacity": 0.22,
+      "color": "#364125"
+    }
+  },
+  "layout": {
+    "contentWidth": 1300,
+    "sectionSpacing": 72,
+    "gap": 24,
+    "density": 1.04
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Cherry pop",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#fff5f9",
+      "foreground": "#49182f",
+      "card": "#ffffff",
+      "primary": "#aa1455",
+      "primaryForeground": "#ffffff",
+      "secondary": "#ffdbeb",
+      "secondaryForeground": "#77103e",
+      "muted": "#f9e6ee",
+      "mutedForeground": "#824664",
+      "accent": "#5938a8",
+      "accentForeground": "#ffffff",
+      "border": "#ecb8d0",
+      "input": "#cd7aa1",
+      "ring": "#bd2168",
+      "success": "#376c46",
+      "warning": "#83551b",
+      "destructive": "#b72b42",
+      "imageBackground": "#f8cddd",
+      "overlayForeground": "#fff6fb"
+    },
+    "dark": {
+      "background": "#291120",
+      "foreground": "#ffe8f4",
+      "card": "#3a1930",
+      "primary": "#ff91c1",
+      "primaryForeground": "#4c0b2a",
+      "secondary": "#5a2143",
+      "secondaryForeground": "#ffd8ef",
+      "muted": "#442038",
+      "mutedForeground": "#e7abc7",
+      "accent": "#c8b5ff",
+      "accentForeground": "#2a1759",
+      "border": "#74415f",
+      "input": "#a86788",
+      "ring": "#ff91c1",
+      "success": "#a2dfb4",
+      "warning": "#f5c57d",
+      "destructive": "#ffa0af",
+      "imageBackground": "#652d4d",
+      "overlayForeground": "#fff6fb"
+    }
+  },
+  "typography": {
+    "headingFont": "'Outfit', Arial, Helvetica, sans-serif",
+    "bodyFont": "'Nunito', Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "googleFonts": [
+      {
+        "family": "Outfit",
+        "weights": [400, 600, 700]
+      },
+      {
+        "family": "Nunito",
+        "weights": [400, 600, 700],
+        "italic": true
+      }
+    ],
+    "baseSize": 16,
+    "scale": 1.05,
+    "headingWeight": 700,
+    "bodyWeight": 400,
+    "strongWeight": 700,
+    "headingLineHeight": 1.1,
+    "bodyLineHeight": 1.65,
+    "headingLetterSpacing": -0.035,
+    "bodyLetterSpacing": 0
+  },
+  "radius": {
+    "card": 32,
+    "button": 1000,
+    "input": 18
+  },
+  "shadows": {
+    "card": {
+      "x": 5,
+      "y": 5,
+      "blur": 0,
+      "spread": 0,
+      "opacity": 0.15,
+      "color": "#a62268"
+    },
+    "floating": {
+      "x": 7,
+      "y": 9,
+      "blur": 0,
+      "spread": 0,
+      "opacity": 0.22,
+      "color": "#862657"
+    }
+  },
+  "layout": {
+    "contentWidth": 1340,
+    "sectionSpacing": 68,
+    "gap": 24,
+    "density": 1.04
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Affiliate template design guide",
-  "description": "Build-time design settings. Dimensions are pixels; letter spacing is em. Colors use six-digit hex. Font families must already exist on the device or be supplied through your own CSS.",
+  "description": "Design settings. Dimensions are pixels; letter spacing is em. Colors use six-digit hex. Fonts use local fallback stacks; optional typography.googleFonts loads selected families from Google at runtime.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -71,6 +71,14 @@
         },
         "monoFont": {
           "$ref": "#/$defs/font"
+        },
+        "googleFonts": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "Optional Google Fonts families to load. Omit or use [] to make no Google Fonts requests. Family names must be unique, ignoring case; pair each family with a heading, body or mono font stack containing local fallbacks.",
+          "items": {
+            "$ref": "#/$defs/googleFont"
+          }
         },
         "baseSize": {
           "type": "number",
@@ -208,8 +216,37 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 200,
-      "pattern": "^(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z][A-Za-z0-9 -]*\"|'[A-Za-z][A-Za-z0-9 -]*')(?: *, *(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z][A-Za-z0-9 -]*\"|'[A-Za-z][A-Za-z0-9 -]*'))*$",
-      "description": "Comma-separated system/local font stack. Quote multiword font names when needed."
+      "pattern": "^(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z0-9][A-Za-z0-9 -]*\"|'[A-Za-z0-9][A-Za-z0-9 -]*')(?: *, *(?:-?[A-Za-z][A-Za-z0-9 -]*|\"[A-Za-z0-9][A-Za-z0-9 -]*\"|'[A-Za-z0-9][A-Za-z0-9 -]*'))*$",
+      "description": "Comma-separated font stack, including local fallbacks. To download a Google Font, also add its family to typography.googleFonts. Quote multiword font names when needed."
+    },
+    "googleFont": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "weights"],
+      "properties": {
+        "family": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+)*$",
+          "description": "Google Fonts family name, for example DM Sans. URLs and CSS are not accepted."
+        },
+        "weights": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 900
+          },
+          "description": "Weights to download, for example [400, 600, 700]. Use weights offered by the family. Variable fonts can support intermediate integer weights."
+        },
+        "italic": {
+          "type": "boolean",
+          "description": "Also load italic variants at every selected weight. Enable only when the family offers italics."
+        }
+      }
     },
     "palette": {
       "type": "object",

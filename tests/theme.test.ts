@@ -19,7 +19,8 @@ test('the design guide and every preset validate and serialize without mutating 
     assert.notEqual(validated, theme)
     const css = themeCss(validated)
     assert.ok(css.startsWith(':root{'))
-    assert.ok(css.includes(`--color-primary:${theme.colors.light.primary};`))
+    const mode = theme.mode === 'dark' ? 'dark' : 'light'
+    assert.ok(css.includes(`--color-primary:${theme.colors[mode].primary};`))
     assert.ok(css.includes(`--radius-button:${theme.radius.button}px;`))
     assert.equal(JSON.stringify(theme), snapshot)
   }

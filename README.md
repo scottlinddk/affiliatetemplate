@@ -11,11 +11,11 @@ The included brand, **Velvalgt**, is a starting point: replace the identity, edi
 Edit **[`src/config/design.json`](src/config/design.json)** to set the design guide for the entire storefront. It has editor autocomplete through [`design.schema.json`](src/config/design.schema.json), and invalid settings fail the build with a readable error.
 
 - Semantic colors for light and dark appearances, including backgrounds, text, buttons, borders, focus rings and status messages.
-- Separate heading, body and monospace fonts; type size, scale, weights, line height and letter spacing.
+- Separate heading, body and monospace fonts, with optional Google Fonts loading; type size, scale, weights, line height and letter spacing.
 - Card, button and input corners; card and floating-panel shadows.
 - Content width, section spacing, grid gaps and density.
 
-Start with the included Botanical, Ocean or Studio presets, or open `/design` to experiment visually, import a JSON theme and download your changes. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
+Choose from ten presets, including Midnight Tech, Atelier Luxe, Cherry Pop and Field Notes, or open `/design` to experiment visually, select Google Fonts, import a JSON theme and download your changes. Replace `src/config/design.json` with the downloaded file, then rebuild. Playground changes are previews; downloading does not modify your repository. The demo footer links to the playground.
 
 Read [the design guide](docs/design-guide.md) for every setting, font setup and preset examples. See [GitHub Pages deployment](docs/github-pages.md) to publish a copy under your own account.
 

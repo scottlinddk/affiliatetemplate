@@ -10,8 +10,16 @@ import {
   type ThemePalette,
 } from '@/lib/theme'
 import type { Product } from '@/lib/types'
+import {
+  firstFontFamily,
+  googleFontCatalog,
+  type GoogleFont,
+} from '@/lib/google-fonts'
 import { ProductCard } from './product-card'
 import { Icon } from './icons'
+import { ThemeFonts } from './theme-fonts'
+
+type FontRole = 'headingFont' | 'bodyFont' | 'monoFont'
 
 const fontOptions = [
   { label: 'Klassisk · Georgia', value: "Georgia, 'Times New Roman', serif" },
@@ -23,7 +31,14 @@ const fontOptions = [
   { label: 'Moderne · System', value: "system-ui, 'Segoe UI', sans-serif" },
   { label: 'Blød · Trebuchet', value: "'Trebuchet MS', Arial, sans-serif" },
   { label: 'Tydelig · Verdana', value: 'Verdana, Geneva, sans-serif' },
+  { label: 'Kode · Courier', value: "'Courier New', monospace" },
 ]
+
+function nearestWeight(value: number, weights: number[]) {
+  return weights.reduce((best, weight) =>
+    Math.abs(weight - value) < Math.abs(best - value) ? weight : best,
+  )
+}
 
 const paletteLabels: Record<keyof ThemePalette, string> = {
   background: 'Sidebaggrund',
@@ -102,17 +117,159 @@ function FontSelect({
   return (
     <label className="studio-field">
       <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {!fontOptions.some((font) => font.value === value) && (
-          <option value={value}>Fra designfil · {value}</option>
-        )}
-        {fontOptions.map((font) => (
-          <option value={font.value} key={font.value}>
-            {font.label}
-          </option>
-        ))}
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {!fontOptions.some((font) => font.value === value) &&
+          !googleFontCatalog.some((font) => font.stack === value) && (
+            <option value={value}>Valgt · {firstFontFamily(value)}</option>
+          )}
+        <optgroup label="Lokale skrifter">
+          {fontOptions.map((font) => (
+            <option value={font.value} key={font.value}>
+              {font.label}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="Google Fonts">
+          {googleFontCatalog.map((font) => (
+            <option value={font.stack} key={font.family}>
+              Google · {font.family}
+            </option>
+          ))}
+        </optgroup>
       </select>
     </label>
+  )
+}
+
+function CustomGoogleFont({
+  onApply,
+}: {
+  onApply: (role: FontRole, stack: string, font: GoogleFont) => void
+}) {
+  const [role, setRole] = useState<FontRole>('headingFont')
+  const [family, setFamily] = useState('')
+  const [fallback, setFallback] = useState('sans-serif')
+  const [weights, setWeights] = useState('400, 700')
+  const [italic, setItalic] = useState(false)
+  const [error, setError] = useState('')
+
+  return (
+    <details className="studio-custom-font">
+      <summary>Tilføj en anden Google Font</summary>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          try {
+            const name = family.trim().replace(/\s+/g, ' ')
+            if (
+              name.length > 80 ||
+              !/^[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+)*$/.test(name)
+            )
+              throw new Error(
+                'Angiv skriftnavnet fra Google Fonts med bogstaver, tal, mellemrum eller bindestreger.',
+              )
+            const selectedWeights = [
+              ...new Set(
+                weights.split(',').map((weight) => Number(weight.trim())),
+              ),
+            ].sort((a, b) => a - b)
+            if (
+              selectedWeights.length > 9 ||
+              selectedWeights.some(
+                (weight) =>
+                  !Number.isInteger(weight) || weight < 100 || weight > 900,
+              )
+            )
+              throw new Error(
+                'Angiv vægte mellem 100 og 900 adskilt af kommaer, fx 400, 700.',
+              )
+            onApply(role, `'${name}', ${fallback}`, {
+              family: name,
+              weights: selectedWeights,
+              italic,
+            })
+            setError('')
+          } catch (cause) {
+            setError(
+              cause instanceof Error
+                ? cause.message
+                : 'Skriften kunne ikke tilføjes.',
+            )
+          }
+        }}
+      >
+        <label className="studio-field">
+          <span>Brug Google Font til</span>
+          <select
+            aria-label="Brug Google Font til"
+            value={role}
+            onChange={(event) => setRole(event.target.value as FontRole)}
+          >
+            <option value="headingFont">Overskrifter</option>
+            <option value="bodyFont">Brødtekst</option>
+            <option value="monoFont">Kode og tal</option>
+          </select>
+        </label>
+        <label className="studio-field">
+          <span>Google Fonts familienavn</span>
+          <input
+            value={family}
+            onChange={(event) => setFamily(event.target.value)}
+            placeholder="Fx Roboto Slab"
+            maxLength={80}
+            required
+          />
+        </label>
+        <label className="studio-field">
+          <span>Reservefont</span>
+          <select
+            aria-label="Reservefont"
+            value={fallback}
+            onChange={(event) => setFallback(event.target.value)}
+          >
+            <option value="sans-serif">Sans-serif · enkel</option>
+            <option value="serif">Serif · klassisk</option>
+            <option value="monospace">Monospace · fast bredde</option>
+          </select>
+        </label>
+        <label className="studio-field">
+          <span>Google Fonts vægte</span>
+          <input
+            value={weights}
+            onChange={(event) => setWeights(event.target.value)}
+            placeholder="400, 700"
+            required
+          />
+        </label>
+        <label className="studio-pill">
+          <input
+            type="checkbox"
+            checked={italic}
+            onChange={(event) => setItalic(event.target.checked)}
+          />
+          Hent også kursiv
+        </label>
+        <p className="studio-hint">
+          Brug det præcise navn og kun vægte og kursiv, som findes på{' '}
+          <a href="https://fonts.google.com/" target="_blank" rel="noreferrer">
+            Google Fonts
+          </a>
+          . Et ukendt navn eller en utilgængelig vægt viser reservefonten.
+        </p>
+        <button className="studio-button" type="submit">
+          Anvend Google Font
+        </button>
+        {error && (
+          <p className="studio-error" role="alert">
+            {error}
+          </p>
+        )}
+      </form>
+    </details>
   )
 }
 
@@ -125,6 +282,11 @@ export function DesignStudio({ products }: { products: Product[] }) {
   )
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const headingGoogleFont = theme.typography.googleFonts?.find(
+    (font) =>
+      font.family.toLowerCase() ===
+      firstFontFamily(theme.typography.headingFont).toLowerCase(),
+  )
 
   function apply(next: ThemeConfig, preset = 'custom') {
     const valid = validateTheme(next)
@@ -137,10 +299,87 @@ export function DesignStudio({ products }: { products: Product[] }) {
   }
 
   function typography(
-    key: keyof ThemeConfig['typography'],
+    key: Exclude<keyof ThemeConfig['typography'], 'googleFonts'>,
     value: string | number,
   ) {
     apply({ ...theme, typography: { ...theme.typography, [key]: value } })
+  }
+
+  function selectFont(role: FontRole, stack: string, custom?: GoogleFont) {
+    const catalogFont = googleFontCatalog.find((font) => font.stack === stack)
+    let chosen =
+      custom ??
+      (catalogFont && {
+        family: catalogFont.family,
+        weights: catalogFont.weights,
+        italic: catalogFont.italic,
+      })
+    const nextTypography = { ...theme.typography, [role]: stack }
+    const familiesIn = (fontStack: string) =>
+      fontStack.split(',').map((family) =>
+        family
+          .trim()
+          .replace(/^['"]|['"]$/g, '')
+          .toLowerCase(),
+      )
+    const roles = ['headingFont', 'bodyFont', 'monoFont'] as const
+    const usedFamilies = roles.flatMap((key) => familiesIn(nextTypography[key]))
+    if (chosen) {
+      const family = chosen.family.toLowerCase()
+      const shared = roles.some(
+        (key) =>
+          key !== role && familiesIn(nextTypography[key]).includes(family),
+      )
+      const previous = nextTypography.googleFonts?.find(
+        (font) => font.family.toLowerCase() === family,
+      )
+      if (shared && previous) {
+        chosen = {
+          ...chosen,
+          weights: [...new Set([...previous.weights, ...chosen.weights])].sort(
+            (a, b) => a - b,
+          ),
+          italic: Boolean(previous.italic || chosen.italic),
+        }
+      }
+    }
+    const fonts = (nextTypography.googleFonts ?? []).filter(
+      (font) =>
+        usedFamilies.includes(font.family.toLowerCase()) &&
+        font.family.toLowerCase() !== chosen?.family.toLowerCase(),
+    )
+    if (chosen) {
+      fonts.push(chosen)
+      // Every displayed weight must exist in the selected Google family.
+      if (role === 'headingFont')
+        nextTypography.headingWeight = nearestWeight(
+          nextTypography.headingWeight,
+          chosen.weights,
+        )
+      if (role === 'bodyFont') {
+        nextTypography.bodyWeight = nearestWeight(
+          nextTypography.bodyWeight,
+          chosen.weights,
+        )
+        nextTypography.strongWeight = nearestWeight(
+          nextTypography.strongWeight,
+          chosen.weights,
+        )
+      }
+    }
+    if (fonts.length) nextTypography.googleFonts = fonts
+    else delete nextTypography.googleFonts
+    try {
+      apply({ ...theme, typography: nextTypography })
+    } catch (cause) {
+      // Custom forms show errors beside their inputs. Imported configurations
+      // can also exceed limits when a menu choice adds a fourth fallback family.
+      if (custom) throw cause
+      setError(
+        cause instanceof Error ? cause.message : 'Skriften kunne ikke vælges.',
+      )
+      setNotice('')
+    }
   }
 
   function importJson(text: string) {
@@ -192,6 +431,7 @@ export function DesignStudio({ products }: { products: Product[] }) {
 
   return (
     <div className="design-studio">
+      <ThemeFonts fonts={theme.typography.googleFonts} />
       <style>{themeCss(theme, '#design-preview')}</style>
       <header className="studio-heading">
         <div>
@@ -223,6 +463,11 @@ export function DesignStudio({ products }: { products: Product[] }) {
             aria-labelledby="studio-presets"
           >
             <h3 id="studio-presets">01 / Vælg en stemning</h3>
+            <p className="studio-preset-current">
+              {presets.length} design ·{' '}
+              {selectedPreset === 'custom' ? 'Tilpasset: ' : 'Aktuelt: '}
+              {theme.name}
+            </p>
             <div className="studio-presets">
               {presets.map((preset) => (
                 <button
@@ -238,15 +483,18 @@ export function DesignStudio({ products }: { products: Product[] }) {
                           key={key}
                           style={{
                             backgroundColor:
-                              preset.theme.colors.light[
-                                key as keyof ThemePalette
-                              ],
+                              preset.theme.colors[
+                                preset.theme.mode === 'dark' ? 'dark' : 'light'
+                              ][key as keyof ThemePalette],
                           }}
                         />
                       ),
                     )}
                   </span>
-                  <span>{preset.name}</span>
+                  <span className="studio-preset-text">
+                    <strong>{preset.name}</strong>
+                    <span>{preset.description}</span>
+                  </span>
                   <span aria-hidden="true">
                     {selectedPreset === preset.id ? '✓' : '↗'}
                   </span>
@@ -340,17 +588,24 @@ export function DesignStudio({ products }: { products: Product[] }) {
             <FontSelect
               label="Skrifttype til overskrifter"
               value={theme.typography.headingFont}
-              onChange={(value) => typography('headingFont', value)}
+              onChange={(value) => selectFont('headingFont', value)}
             />
             <FontSelect
               label="Skrifttype til brødtekst"
               value={theme.typography.bodyFont}
-              onChange={(value) => typography('bodyFont', value)}
+              onChange={(value) => selectFont('bodyFont', value)}
+            />
+            <FontSelect
+              label="Skrifttype til kode og tal"
+              value={theme.typography.monoFont}
+              onChange={(value) => selectFont('monoFont', value)}
             />
             <p className="studio-hint">
-              Lokale skrifter med fallback. Flere skriftnavne og vægte kan
-              angives i JSON.
+              Kun valgte Google Fonts hentes fra Google i besøgendes browser.
+              Lokale skrifter kræver ingen hentning. Reservefonte holder teksten
+              læsbar, hvis en skrifttype ikke kan hentes.
             </p>
+            <CustomGoogleFont onApply={selectFont} />
             <Slider
               label="Grundstørrelse"
               value={theme.typography.baseSize}
@@ -368,14 +623,40 @@ export function DesignStudio({ products }: { products: Product[] }) {
               unit="×"
               onChange={(value) => typography('scale', value)}
             />
-            <Slider
-              label="Overskrifters vægt"
-              value={theme.typography.headingWeight}
-              min={100}
-              max={900}
-              step={100}
-              onChange={(value) => typography('headingWeight', value)}
-            />
+            {headingGoogleFont ? (
+              <label className="studio-field">
+                <span>Overskrifters vægt</span>
+                <select
+                  aria-label="Overskrifters vægt"
+                  value={theme.typography.headingWeight}
+                  onChange={(event) =>
+                    typography('headingWeight', Number(event.target.value))
+                  }
+                >
+                  {[
+                    ...new Set([
+                      ...headingGoogleFont.weights,
+                      theme.typography.headingWeight,
+                    ]),
+                  ]
+                    .sort((a, b) => a - b)
+                    .map((weight) => (
+                      <option key={weight} value={weight}>
+                        {weight}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ) : (
+              <Slider
+                label="Overskrifters vægt"
+                value={theme.typography.headingWeight}
+                min={100}
+                max={900}
+                step={100}
+                onChange={(value) => typography('headingWeight', value)}
+              />
+            )}
             <Slider
               label="Bogstavafstand i overskrifter"
               value={theme.typography.headingLetterSpacing}
@@ -613,6 +894,9 @@ export function DesignStudio({ products }: { products: Product[] }) {
                     <span className="studio-status-warning">Få tilbage</span>
                     <span className="studio-status-error">Udsolgt</span>
                   </div>
+                  <p className="studio-sample-code">
+                    <code>Varenr. HV-0248</code>
+                  </p>
                 </section>
               </div>
             </div>

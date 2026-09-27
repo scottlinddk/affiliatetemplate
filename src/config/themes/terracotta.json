@@ -1,0 +1,105 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Terracotta journal",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#fff9f2",
+      "foreground": "#3c2922",
+      "card": "#fffdf9",
+      "primary": "#963e2d",
+      "primaryForeground": "#ffffff",
+      "secondary": "#f4ddcd",
+      "secondaryForeground": "#663b2a",
+      "muted": "#f5e8dd",
+      "mutedForeground": "#7b5748",
+      "accent": "#526741",
+      "accentForeground": "#ffffff",
+      "border": "#dec5b4",
+      "input": "#bc9378",
+      "ring": "#9a5339",
+      "success": "#4e6b3c",
+      "warning": "#835b19",
+      "destructive": "#aa3934",
+      "imageBackground": "#efd7c1",
+      "overlayForeground": "#fff8ef"
+    },
+    "dark": {
+      "background": "#221916",
+      "foreground": "#fae8d7",
+      "card": "#31231f",
+      "primary": "#eea082",
+      "primaryForeground": "#401d13",
+      "secondary": "#4c3329",
+      "secondaryForeground": "#f5d7bd",
+      "muted": "#3a2b24",
+      "mutedForeground": "#ceae96",
+      "accent": "#b8c69a",
+      "accentForeground": "#25331c",
+      "border": "#634739",
+      "input": "#956b51",
+      "ring": "#eea082",
+      "success": "#b8d49a",
+      "warning": "#e8c17e",
+      "destructive": "#f79c8c",
+      "imageBackground": "#523a2b",
+      "overlayForeground": "#fff8ef"
+    }
+  },
+  "typography": {
+    "headingFont": "'Lora', Georgia, 'Times New Roman', serif",
+    "bodyFont": "'Source Sans 3', Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "googleFonts": [
+      {
+        "family": "Lora",
+        "weights": [400, 500, 600],
+        "italic": true
+      },
+      {
+        "family": "Source Sans 3",
+        "weights": [400, 600, 700],
+        "italic": true
+      }
+    ],
+    "baseSize": 16,
+    "scale": 1.02,
+    "headingWeight": 500,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.16,
+    "bodyLineHeight": 1.8,
+    "headingLetterSpacing": -0.025,
+    "bodyLetterSpacing": 0
+  },
+  "radius": {
+    "card": 8,
+    "button": 3,
+    "input": 4
+  },
+  "shadows": {
+    "card": {
+      "x": 2,
+      "y": 4,
+      "blur": 12,
+      "spread": -3,
+      "opacity": 0.06,
+      "color": "#713a28"
+    },
+    "floating": {
+      "x": 0,
+      "y": 10,
+      "blur": 28,
+      "spread": -4,
+      "opacity": 0.18,
+      "color": "#713a28"
+    }
+  },
+  "layout": {
+    "contentWidth": 1220,
+    "sectionSpacing": 80,
+    "gap": 28,
+    "density": 1.06
+  }
+}

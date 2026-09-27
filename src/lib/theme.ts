@@ -1,8 +1,16 @@
 import design from '../config/design.json'
 import schema from '../config/design.schema.json'
+import atelier from '../config/themes/atelier.json'
 import botanical from '../config/themes/botanical.json'
+import cherry from '../config/themes/cherry.json'
+import fieldNotes from '../config/themes/field-notes.json'
+import lavender from '../config/themes/lavender.json'
+import midnight from '../config/themes/midnight.json'
+import nordic from '../config/themes/nordic.json'
 import ocean from '../config/themes/ocean.json'
 import studio from '../config/themes/studio.json'
+import terracotta from '../config/themes/terracotta.json'
+import type { GoogleFont } from './google-fonts'
 
 export type ThemePalette = {
   background: string
@@ -45,6 +53,7 @@ export type ThemeConfig = {
     headingFont: string
     bodyFont: string
     monoFont: string
+    googleFonts?: GoogleFont[]
     baseSize: number
     scale: number
     headingWeight: number
@@ -77,6 +86,9 @@ type SchemaNode = {
   minLength?: number
   maxLength?: number
   pattern?: string
+  items?: SchemaNode
+  minItems?: number
+  maxItems?: number
 }
 
 // Use the same rules as editor autocomplete, so the JSON schema and build cannot drift.
@@ -110,6 +122,20 @@ function check(value: unknown, node: SchemaNode, path: string): void {
         check(item, properties[key], `${path}.${key}`)
       }
     }
+  } else if (node.type === 'array') {
+    if (!Array.isArray(value)) fail('must be an array')
+    const items = value as unknown[]
+    if (node.minItems !== undefined && items.length < node.minItems)
+      fail(`must contain at least ${node.minItems} item(s)`)
+    if (node.maxItems !== undefined && items.length > node.maxItems)
+      fail(`must contain at most ${node.maxItems} item(s)`)
+    if (node.items) {
+      items.forEach((item, index) =>
+        check(item, node.items!, `${path}[${index}]`),
+      )
+    }
+  } else if (node.type === 'boolean') {
+    if (typeof value !== 'boolean') fail('must be a boolean')
   } else if (node.type === 'string') {
     if (typeof value !== 'string') fail('must be a string')
     const text = value as string
@@ -119,9 +145,11 @@ function check(value: unknown, node: SchemaNode, path: string): void {
       fail(`must be at most ${node.maxLength} characters`)
     if (node.pattern && !new RegExp(node.pattern).test(text)) {
       fail(
-        path.includes('Font')
-          ? 'must be a comma-separated font stack using plain or quoted font names'
-          : 'must be a six-digit hexadecimal color, for example #28513e',
+        path.endsWith('.family')
+          ? 'must be a font family name containing letters, digits, spaces or hyphens'
+          : path.endsWith('Font')
+            ? 'must be a comma-separated font stack using plain or quoted font names'
+            : 'must be a six-digit hexadecimal color, for example #28513e',
       )
     }
   } else if (node.type === 'number' || node.type === 'integer') {
@@ -140,7 +168,18 @@ function check(value: unknown, node: SchemaNode, path: string): void {
 /** Validate before rendering or importing. Unknown keys are rejected to catch spelling mistakes. */
 export function validateTheme(input: unknown): ThemeConfig {
   check(input, schema, 'design')
-  return structuredClone(input) as ThemeConfig
+  const config = structuredClone(input) as ThemeConfig
+  const families = new Set<string>()
+  for (const font of config.typography.googleFonts ?? []) {
+    const family = font.family.toLowerCase()
+    if (families.has(family)) {
+      throw new Error(
+        `Invalid design configuration: design.typography.googleFonts contains duplicate family ${font.family}.`,
+      )
+    }
+    families.add(family)
+  }
+  return config
 }
 
 const kebab = (name: string) =>
@@ -211,12 +250,89 @@ export function themeCss(input: ThemeConfig, selector = ':root'): string {
 
 export const defaultTheme = validateTheme(design)
 
-export const presets: { id: string; name: string; theme: ThemeConfig }[] = [
+export const presets: {
+  id: string
+  name: string
+  description: string
+  tags: string[]
+  theme: ThemeConfig
+}[] = [
   {
     id: 'botanical',
     name: 'Botanical editorial',
+    description:
+      'Grønne nuancer, klassiske serifoverskrifter og diskrete hjørner.',
+    tags: ['Naturlig', 'Redaktionel', 'Lokale fonte'],
     theme: validateTheme(botanical),
   },
-  { id: 'ocean', name: 'Ocean minimal', theme: validateTheme(ocean) },
-  { id: 'studio', name: 'Warm studio', theme: validateTheme(studio) },
+  {
+    id: 'ocean',
+    name: 'Ocean minimal',
+    description: 'Klare blå toner, kompakte mellemrum og enkel sans-serif.',
+    tags: ['Minimal', 'Kølig', 'Lokale fonte'],
+    theme: validateTheme(ocean),
+  },
+  {
+    id: 'studio',
+    name: 'Warm studio',
+    description: 'Ferskentoner, bløde kort og indbydende pilleformede knapper.',
+    tags: ['Varm', 'Afrundet', 'Lokale fonte'],
+    theme: validateTheme(studio),
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight tech',
+    description:
+      'Elektrisk cyan på dyb marineblå med geometrisk skrift og tæt layout.',
+    tags: ['Mørk', 'Teknologi', 'Google Fonts'],
+    theme: validateTheme(midnight),
+  },
+  {
+    id: 'atelier',
+    name: 'Atelier luxe',
+    description:
+      'Creme og antikt guld, elegant serif og luft omkring skarpe kanter.',
+    tags: ['Luksus', 'Serif', 'Google Fonts'],
+    theme: validateTheme(atelier),
+  },
+  {
+    id: 'cherry',
+    name: 'Cherry pop',
+    description:
+      'Livlig pink, legende rund skrift og markante, forskudte skygger.',
+    tags: ['Legende', 'Markant', 'Google Fonts'],
+    theme: validateTheme(cherry),
+  },
+  {
+    id: 'nordic',
+    name: 'Nordic mono',
+    description:
+      'Rolig monokrom, monospaceoverskrifter og præcise, kompakte mellemrum.',
+    tags: ['Minimal', 'Monospace', 'Google Fonts'],
+    theme: validateTheme(nordic),
+  },
+  {
+    id: 'terracotta',
+    name: 'Terracotta journal',
+    description:
+      'Ler og pergament, litterære serifoverskrifter og behagelig læseafstand.',
+    tags: ['Varm', 'Redaktionel', 'Google Fonts'],
+    theme: validateTheme(terracotta),
+  },
+  {
+    id: 'lavender',
+    name: 'Lavender cloud',
+    description:
+      'Blød violet, luftige mellemrum, pilleknapper og diffuse farvede skygger.',
+    tags: ['Blød', 'Afrundet', 'Google Fonts'],
+    theme: validateTheme(lavender),
+  },
+  {
+    id: 'field-notes',
+    name: 'Field notes',
+    description:
+      'Oliven og havre, udtryksfuld serif og solide kort med taktile skygger.',
+    tags: ['Friluftsliv', 'Jordfarver', 'Google Fonts'],
+    theme: validateTheme(fieldNotes),
+  },
 ]

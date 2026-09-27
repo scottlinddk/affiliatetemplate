@@ -119,7 +119,19 @@
 .studio-presets {
   display: grid;
   gap: 8px;
-  margin: 16px 0 12px;
+  margin: 12px 0;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+.design-studio .studio-preset-current {
+  font:
+    11px/1.6 Arial,
+    sans-serif;
+  color: #55644f;
+  margin-top: 12px;
 }
 .studio-preset {
   background: #fff;
@@ -130,7 +142,7 @@
   display: flex;
   align-items: center;
   text-align: left;
-  gap: 12px;
+  gap: 9px;
   font:
     12px/1.5 Arial,
     sans-serif;
@@ -142,12 +154,29 @@
   background: #f1f5ed;
   border-color: #7d9276;
 }
+.studio-preset-text {
+  min-width: 0;
+}
+.studio-preset-text strong,
+.studio-preset-text > span {
+  display: block;
+}
+.studio-preset-text strong {
+  font-weight: 600;
+}
+.studio-preset-text > span {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #65715f;
+  margin-top: 3px;
+}
 .studio-preset-swatches {
   display: flex;
+  flex-shrink: 0;
 }
 .studio-preset-swatches > span {
-  width: 15px;
-  height: 24px;
+  width: 10px;
+  height: 32px;
   border: 1px solid #0000000d;
 }
 .studio-preset-swatches > span:first-child {
@@ -217,7 +246,8 @@
   gap: 5px;
   margin: 15px 0;
 }
-.studio-field select {
+.studio-field select,
+.studio-custom-font .studio-field input:not([type='checkbox']) {
   max-width: 100%;
   width: 100%;
   border: 1px solid #d6dfd3;
@@ -228,6 +258,25 @@
   font:
     12px/1.5 Arial,
     sans-serif;
+}
+.studio-custom-font {
+  border: 1px solid #d6dfd3;
+  border-radius: 5px;
+  padding: 12px;
+  margin: 15px 0;
+}
+.studio-custom-font > summary {
+  font:
+    600 11px/1.5 Arial,
+    sans-serif;
+  cursor: pointer;
+  color: #395436;
+}
+.studio-custom-font .studio-button {
+  width: 100%;
+}
+.studio-custom-font a {
+  text-decoration: underline;
 }
 .design-studio .studio-field input[type='file'] {
   max-width: 100%;

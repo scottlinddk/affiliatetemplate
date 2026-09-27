@@ -1,0 +1,104 @@
+{
+  "$schema": "../design.schema.json",
+  "version": 1,
+  "name": "Lavender cloud",
+  "mode": "light",
+  "colors": {
+    "light": {
+      "background": "#f8f6ff",
+      "foreground": "#302449",
+      "card": "#ffffff",
+      "primary": "#6240b0",
+      "primaryForeground": "#ffffff",
+      "secondary": "#eae1ff",
+      "secondaryForeground": "#513882",
+      "muted": "#eee9fa",
+      "mutedForeground": "#705e8b",
+      "accent": "#8c3668",
+      "accentForeground": "#ffffff",
+      "border": "#ddd2ef",
+      "input": "#b5a1d0",
+      "ring": "#7953c4",
+      "success": "#407044",
+      "warning": "#806020",
+      "destructive": "#b43959",
+      "imageBackground": "#e8defa",
+      "overlayForeground": "#fffaff"
+    },
+    "dark": {
+      "background": "#1d172c",
+      "foreground": "#eee6ff",
+      "card": "#2b223d",
+      "primary": "#c5a7ff",
+      "primaryForeground": "#2f175e",
+      "secondary": "#423254",
+      "secondaryForeground": "#ecdfff",
+      "muted": "#33283f",
+      "mutedForeground": "#c0aecd",
+      "accent": "#eda9d0",
+      "accentForeground": "#451936",
+      "border": "#59456e",
+      "input": "#826498",
+      "ring": "#c5a7ff",
+      "success": "#aad7b0",
+      "warning": "#ebd18d",
+      "destructive": "#ffacc2",
+      "imageBackground": "#4e3964",
+      "overlayForeground": "#fffaff"
+    }
+  },
+  "typography": {
+    "headingFont": "'Manrope', Arial, Helvetica, sans-serif",
+    "bodyFont": "'DM Sans', Arial, Helvetica, sans-serif",
+    "monoFont": "Consolas, monospace",
+    "googleFonts": [
+      {
+        "family": "Manrope",
+        "weights": [400, 500, 600]
+      },
+      {
+        "family": "DM Sans",
+        "weights": [400, 500, 600],
+        "italic": true
+      }
+    ],
+    "baseSize": 15,
+    "scale": 1.03,
+    "headingWeight": 600,
+    "bodyWeight": 400,
+    "strongWeight": 600,
+    "headingLineHeight": 1.15,
+    "bodyLineHeight": 1.75,
+    "headingLetterSpacing": -0.04,
+    "bodyLetterSpacing": 0.005
+  },
+  "radius": {
+    "card": 28,
+    "button": 1000,
+    "input": 24
+  },
+  "shadows": {
+    "card": {
+      "x": 0,
+      "y": 12,
+      "blur": 35,
+      "spread": -8,
+      "opacity": 0.12,
+      "color": "#7856a9"
+    },
+    "floating": {
+      "x": 0,
+      "y": 18,
+      "blur": 48,
+      "spread": -10,
+      "opacity": 0.24,
+      "color": "#7856a9"
+    }
+  },
+  "layout": {
+    "contentWidth": 1260,
+    "sectionSpacing": 88,
+    "gap": 28,
+    "density": 1.1
+  }
+}
