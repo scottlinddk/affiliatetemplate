@@ -1,6 +1,7 @@
 'use client'
 import type { Product } from '@/lib/types'
 import { formatPrice, getOfferStatus } from '@/lib/affiliate'
+import { maskSlug } from '@/lib/linkmask-paths'
 import { AffiliateLink } from './affiliate-link'
 import { Icon } from './icons'
 export function OfferTable({ product }: { product: Product }) {
@@ -64,6 +65,7 @@ export function OfferTable({ product }: { product: Product }) {
                 <AffiliateLink
                   url={offer.url}
                   affiliateUrl={offer.affiliateUrl}
+                  maskedSlug={maskSlug('offer', product.slug, offer.id)}
                   demo={product.demo}
                 >
                   Se hos butik <Icon name="arrow" size={16} />

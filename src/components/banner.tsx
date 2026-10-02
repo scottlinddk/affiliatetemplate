@@ -1,6 +1,7 @@
 'use client'
 
 import { getBannerForPlacement, type Banner } from '@/lib/banners'
+import { maskedHref, maskSlug } from '@/lib/linkmask-paths'
 import { usePreferences } from './preferences'
 
 /** The image element itself is absent until consent, including in server HTML. */
@@ -12,7 +13,10 @@ export function BannerContent({
   marketing: boolean
 }) {
   const destination =
-    marketing && banner.affiliateUrl ? banner.affiliateUrl : banner.url
+    marketing && banner.affiliateUrl
+      ? (maskedHref(maskSlug('banner', banner.id), banner.affiliateUrl) ??
+        banner.affiliateUrl)
+      : banner.url
   return (
     <aside
       className="container section advertiser-banner"

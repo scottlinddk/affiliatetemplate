@@ -44,6 +44,7 @@ For an existing clone, start at `npm ci`. Copy `.env.example` to `.env.local` wh
 - Up to four products in a comparison and browser-local favorites.
 - Server-side product import through [partner-ads-json-feed](https://github.com/scottlinddk/partner-ads-json-feed), matching validated product identifiers across merchants and rejecting invalid data.
 - Affiliate links that respect the visitor's saved choice; direct merchant links without affiliate consent.
+- [LinkMask](docs/linkmask.md) redirects for friendly same-origin affiliate links on server deployments, with automatic fallback for static exports.
 - Optional approved banner placements, loaded only after the visitor allows affiliate tracking.
 - A manually maintained offers/coupon page with validity dates and clear conditions.
 - Typed Markdown guides, reviews, comparisons and posts with consent-aware product/offer/CTA blocks, strict build validation, author/FAQ/source rendering and related links.
