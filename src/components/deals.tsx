@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { Deal } from '@/lib/types'
 import { isActiveDeal } from '@/lib/deals'
+import { maskSlug } from '@/lib/linkmask-paths'
 import { AffiliateLink } from './affiliate-link'
 import { Icon } from './icons'
 export function Deals({ deals }: { deals: Deal[] }) {
@@ -52,6 +53,7 @@ export function Deals({ deals }: { deals: Deal[] }) {
             <AffiliateLink
               url={d.url}
               affiliateUrl={d.affiliateUrl}
+              maskedSlug={maskSlug('deal', d.id)}
               demo={d.demo}
             >
               Se tilbud hos butik <Icon name="arrow" size={16} />

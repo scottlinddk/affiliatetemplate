@@ -3,6 +3,7 @@ import test from 'node:test'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { BannerContent } from '../src/components/banner'
+import { basePath } from '../src/lib/paths'
 import {
   getBannerForPlacement,
   parseBanners,
@@ -85,12 +86,13 @@ test('without marketing consent banner markup has no image, preload, or tracking
   assert.doesNotMatch(html, /<img|<link|src=|partner-ads|original-banner/)
 })
 
-test('with consent the original advertiser image and approved affiliate link are used', () => {
+test('with consent the original advertiser image and masked affiliate link are used', () => {
   const html = renderToStaticMarkup(
     createElement(BannerContent, { banner, marketing: true }),
   )
   assert.match(html, /src="https:\/\/merchant\.example\/original-banner\.jpg"/)
-  assert.match(html, /partner-ads\.com/)
+  assert.ok(html.includes(`href="${basePath}/link/banner/i-approved-home"`))
+  assert.doesNotMatch(html, /partner-ads\.com/)
   assert.match(html, /rel="sponsored nofollow noopener noreferrer"/)
   assert.match(html, /loading="lazy"/)
   assert.match(html, /Reklame/)

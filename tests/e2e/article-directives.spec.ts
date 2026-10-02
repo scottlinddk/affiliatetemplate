@@ -169,8 +169,17 @@ test('article product, offers, CTA and banners follow consent and withdrawal', a
   await page
     .getByRole('button', { name: 'Tillad affiliate-sporing', exact: true })
     .click()
-  for (const link of await sponsored.all())
-    await expect(link).toHaveAttribute('href', affiliateUrl)
+  expect(
+    await sponsored.evaluateAll((links) =>
+      links.map((link) => link.getAttribute('href')),
+    ),
+  ).toEqual([
+    `${fixtureBasePath}/link/banner/i-article-inline`,
+    `${fixtureBasePath}/link/offer/i-article-product/i-article-offer`,
+    `${fixtureBasePath}/link/offer/i-article-product/i-article-offer`,
+    `${fixtureBasePath}/link/program/i-article-shop`,
+    `${fixtureBasePath}/link/banner/i-article-end`,
+  ])
   await expect(banners.locator('img')).toHaveCount(2)
   for (const image of await banners.locator('img').all())
     await expect(image).toHaveAttribute('src', bannerImage)

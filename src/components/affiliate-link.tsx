@@ -2,15 +2,19 @@
 import type { ReactNode } from 'react'
 import { usePreferences } from './preferences'
 import { isDirectMerchantUrl, isSafeAffiliateUrl } from '@/lib/affiliate'
+import { maskedHref } from '@/lib/linkmask-paths'
+
 export function AffiliateLink({
   url,
   affiliateUrl,
+  maskedSlug,
   children,
   className = 'button',
   demo = false,
 }: {
   url: string
   affiliateUrl?: string
+  maskedSlug?: string
   children: ReactNode
   className?: string
   demo?: boolean
@@ -30,7 +34,9 @@ export function AffiliateLink({
   return (
     <a
       className={className}
-      href={tracked ? affiliateUrl : url}
+      href={
+        tracked ? (maskedHref(maskedSlug, affiliateUrl) ?? affiliateUrl) : url
+      }
       rel="sponsored nofollow noopener noreferrer"
       target="_blank"
     >

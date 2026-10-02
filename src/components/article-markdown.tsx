@@ -2,6 +2,7 @@ import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkDirective from 'remark-directive'
 import { bestOffer, formatPrice } from '@/lib/affiliate'
+import { maskSlug } from '@/lib/linkmask-paths'
 import {
   remarkArticleDirectives,
   validateArticleContent,
@@ -37,7 +38,11 @@ export function ArticleMarkdown({
       return (
         <aside className="info-panel article-cta">
           <p className="overline">Reklame · {program.name}</p>
-          <AffiliateLink url={program.url} affiliateUrl={program.affiliateUrl}>
+          <AffiliateLink
+            url={program.url}
+            affiliateUrl={program.affiliateUrl}
+            maskedSlug={maskSlug('program', program.id)}
+          >
             {directive.label}
           </AffiliateLink>
         </aside>
@@ -71,6 +76,7 @@ export function ArticleMarkdown({
             <AffiliateLink
               url={offer.url}
               affiliateUrl={offer.affiliateUrl}
+              maskedSlug={maskSlug('offer', product.slug, offer.id)}
               demo={product.demo}
             >
               Se hos {offer.merchant}

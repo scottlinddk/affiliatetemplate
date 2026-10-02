@@ -52,6 +52,7 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
+!vendor/scttlnd-linkmask-1.0.1.tgz
 
 # Yarn Integrity file
 .yarn-integrity
