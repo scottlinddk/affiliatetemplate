@@ -6,6 +6,7 @@ import { loadEnvConfig } from '@next/env'
 import { normalizeBasePath } from '../src/lib/paths'
 import { verifyStaticExport } from './verify-export'
 import { normalizeExportedSegments } from './normalize-exported-segments'
+import { FeedError } from '../src/lib/feed'
 import { prepareCatalog } from './prepare-catalog'
 
 loadEnvConfig(process.cwd())
@@ -62,8 +63,10 @@ async function main() {
   }
 }
 
-main().catch(() => {
-  // Keep upstream identifiers and server details out of CI logs.
+main().catch((error) => {
+  // Keep upstream identifiers and server details out of CI logs: only our own
+  // static FeedError / validation messages are printed.
+  if (error instanceof FeedError) console.error(`Reason: ${error.message}`)
   console.error(
     'Static export failed. Check feed configuration, availability and freshness; the existing Pages deployment is unchanged.',
   )

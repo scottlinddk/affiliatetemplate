@@ -169,8 +169,21 @@ export async function fetchPartnerAdsFeed(
       ...options,
       updatedAt: firstPage.cachedAt,
     })
-  } catch {
-    // Upstream errors may contain feed URLs or hosting credentials.
-    throw new FeedError('Produktfeedet kunne ikke hentes eller valideres.')
+  } catch (error) {
+    // Our own FeedError messages are static. Anything else (network, JSON, HTTP
+    // client) may contain feed URLs or credentials, so expose only a safe code.
+    if (error instanceof FeedError) throw error
+    const code =
+      error instanceof Error
+        ? [error.name, (error.cause as { code?: unknown } | undefined)?.code]
+            .filter(
+              (part): part is string =>
+                typeof part === 'string' && /^[A-Za-z_]{1,40}$/.test(part),
+            )
+            .join('/')
+        : ''
+    throw new FeedError(
+      `Produktfeedet kunne ikke hentes eller valideres${code ? ` (${code})` : ''}.`,
+    )
   }
 }
