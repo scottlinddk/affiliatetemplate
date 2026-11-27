@@ -1,6 +1,7 @@
 import { getOfferStatus } from '../src/lib/affiliate'
 import { fetchPartnerAdsFeed } from '../src/lib/feed-client'
 import {
+  FeedError,
   mergeCatalogProducts,
   parseFeedApiUrl,
   parseFeedConfig,
@@ -17,7 +18,7 @@ export async function prepareCatalog(
   const apiUrl = parseFeedApiUrl(settings.apiUrl)
   const partnerId = settings.partnerId?.trim()
   if (partnerId && !/^[1-9]\d{0,19}$/.test(partnerId))
-    throw new Error('Invalid partner ID for the catalog export.')
+    throw new FeedError('Invalid partner ID for the catalog export.')
   const results = await Promise.all(
     configs.map((config) =>
       fetchPartnerAdsFeed(
@@ -30,7 +31,7 @@ export async function prepareCatalog(
   )
   for (const result of results) {
     if (!result.products.length)
-      throw new Error(
+      throw new FeedError(
         'A configured feed has no valid products. Keeping the previously published site.',
       )
     // A fresh out-of-stock update is valid and must replace the old stock status.
@@ -43,7 +44,7 @@ export async function prepareCatalog(
         ),
       )
     )
-      throw new Error(
+      throw new FeedError(
         'A configured feed has stale or invalid timestamps. Keeping the previously published site.',
       )
   }
